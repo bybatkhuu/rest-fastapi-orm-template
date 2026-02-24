@@ -501,7 +501,7 @@ data/
 dataset/
 datasets/
 .benchmarks/
-rest.fastapi-orm-template/
+rest-fastapi-orm-template/
 
 # Files:
 log
@@ -513,7 +513,7 @@ data
 dataset
 datasets
 .benchmarks
-rest.fastapi-orm-template
+rest-fastapi-orm-template
 env
 *.bak
 pm2-process.json
