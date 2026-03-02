@@ -1,10 +1,9 @@
 services:
   db:
     # volumes:
-    #   - "./volumes/storage/postgresql/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d:ro"
+    #   - "./volumes/configs/postgresql/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d:ro"
     #   - "./volumes/storage/postgresql/logs:/var/log/postgresql"
     # deploy:
-    #   replicas: 0
     #   resources:
     #     limits:
     #       cpus: "1.0"
@@ -32,7 +31,6 @@ services:
   #     - "/etc/localtime:/etc/localtime:ro"
   #     - "db-gui-data:/var/lib/pgadmin"
   #   deploy:
-  #     replicas: 0
   #     resources:
   #       limits:
   #         cpus: "0.5"
@@ -41,25 +39,26 @@ services:
   #     - "${PGADMIN_PORT:-8080}:80"
 
   api:
+    image: bybatkhuu/rest-fastapi-orm-template:latest
     # depends_on:
     #   db:
     #     condition: service_healthy
     environment:
       FOT_DB_HOST: db
     volumes:
-      - "./volumes/storage/rest-fastapi-orm-template/logs:${FOT_API_LOGS_DIR:-/var/log/rest-fastapi-orm-template}"
-      - "./volumes/storage/rest-fastapi-orm-template/data:${FOT_API_DATA_DIR:-/var/lib/rest-fastapi-orm-template}"
       - "./scripts/docker/docker-entrypoint.sh:/usr/local/bin/docker-entrypoint.sh"
       - "./src:/app/rest-fastapi-orm-template"
       - "./volumes/.vscode-server:/home/fot-user/.vscode-server"
     # deploy:
-    #   replicas: 0
+    #   replicas: 3
     #   resources:
     #     limits:
     #       cpus: "0.5"
     #       memory: 512M
+    # ports: !override
+    #   - "8000-8002:${FOT_API_PORT:-8000}"
     # command: ["/bin/bash"]
-    # command: ["-b", "uvicorn main:app --host=0.0.0.0 --port=${FOT_API_PORT:-8000} --no-access-log --no-server-header --proxy-headers --forwarded-allow-ips='*' --reload --reload-include='*.yml' --reload-include='.env'"]
+    # command: ["-b", "uvicorn api.main:app --host=0.0.0.0 --port=${FOT_API_PORT:-8000} --no-access-log --no-server-header --proxy-headers --forwarded-allow-ips='*' --reload"]
     # healthcheck:
     #   test: ["CMD-SHELL", "curl -f http://localhost:${FOT_API_PORT:-8000}/api/v${FOT_API_VERSION:-1}/ping"]
     #   start_period: 30s

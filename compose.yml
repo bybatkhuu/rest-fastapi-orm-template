@@ -14,7 +14,7 @@ services:
     tty: true
 
   api:
-    image: bybatkhuu/rest-fastapi-orm-template:latest
+    image: bybatkhuu/rest-fastapi-orm-template:3.0.0-250216
     build:
       context: .
     depends_on:
