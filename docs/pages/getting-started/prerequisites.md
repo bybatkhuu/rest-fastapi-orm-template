@@ -3,7 +3,7 @@
 [RECOMMENDED] For **docker** runtime:
 
 - Install [**docker** and **docker compose**](https://docs.docker.com/engine/install)
-    - Docker image: [**bybatkhuu/rest.fastapi-orm-template**](https://hub.docker.com/r/bybatkhuu/rest.fastapi-orm-template)
+    - Docker image: [**bybatkhuu/rest-fastapi-orm-template**](https://hub.docker.com/r/bybatkhuu/rest-fastapi-orm-template)
 
 For **standalone** runtime:
 

@@ -126,7 +126,8 @@ ipython_config.py
 .LSOverride
 
 # Icon must end with two \r
-Icon
+Icon
+
 
 # Thumbnails
 ._*
@@ -500,7 +501,6 @@ data/
 dataset/
 datasets/
 .benchmarks/
-rest.fastapi-orm-template/
 
 # Files:
 log
@@ -512,7 +512,6 @@ data
 dataset
 datasets
 .benchmarks
-rest.fastapi-orm-template
 env
 *.bak
 pm2-process.json

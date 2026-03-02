@@ -18,7 +18,7 @@
 # -x, --cross-compile                           Enable cross compiling.
 # -b=BASE_IMAGE, --base-image=BASE_IMAGE        Base image name. Default is "ubuntu:22.04".
 # -g=REGISTRY, --registry=REGISTRY              Docker image registry (docker registry and username). Default is "bybatkhuu".
-# -r=REPO, --repo=REPO                          Docker image repository. Default is "rest.fastapi-orm-template".
+# -r=REPO, --repo=REPO                          Docker image repository. Default is "rest-fastapi-orm-template".
 # -v=VERSION, --version=VERSION                 Docker image version. Default read from "./src/api/__version__.py" file.
 # -s=SUBTAG, --subtag=SUBTAG                    Docker image subtag. Default is "".
 # -d=DOCKERFILE, --dockerfile=DOCKERFILE        Dockerfile path. Default is "./Dockerfile".
@@ -31,7 +31,7 @@
 ./scripts/build.sh -x
 
 # Or:
-./scripts/build.sh -p=arm64 -b=ubuntu:22.04 -n=bybatkhuu -r=rest.fastapi-orm-template -v=1.0.0 -s=-arm64 -d=./Dockerfile -t=. -u -c
+./scripts/build.sh -p=arm64 -b=ubuntu:22.04 -n=bybatkhuu -r=rest-fastapi-orm-template -v=1.0.0 -s=-arm64 -d=./Dockerfile -t=. -u -c
 ```
 
 **B.** Docker build command:
@@ -48,13 +48,13 @@ docker build \
 # For example:
 docker build \
     --progress plain \
-    -t bybatkhuu/rest.fastapi-orm-template:latest \
+    -t bybatkhuu/rest-fastapi-orm-template:latest \
     .
 
 # Push image to Docker Registry:
 docker push [IMG_FULLNAME]
 # For example:
-docker push bybatkhuu/rest.fastapi-orm-template:latest
+docker push bybatkhuu/rest-fastapi-orm-template:latest
 ```
 
 **C.** Docker buildx command (**cross-compile**):
@@ -78,9 +78,9 @@ docker buildx build \
 docker buildx build \
     --progress plain \
     --platform linux/amd64,linux/arm64 \
-    --cache-from=type=registry,ref=bybatkhuu/rest.fastapi-orm-template:cache-latest \
-    --cache-to=type=registry,ref=bybatkhuu/rest.fastapi-orm-template:cache-latest,mode=max \
-    -t bybatkhuu/rest.fastapi-orm-template:latest \
+    --cache-from=type=registry,ref=bybatkhuu/rest-fastapi-orm-template:cache-latest \
+    --cache-to=type=registry,ref=bybatkhuu/rest-fastapi-orm-template:cache-latest,mode=max \
+    -t bybatkhuu/rest-fastapi-orm-template:latest \
     --push \
     .
 

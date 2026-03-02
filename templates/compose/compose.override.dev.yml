@@ -47,10 +47,10 @@ services:
     environment:
       FOT_DB_HOST: db
     volumes:
-      - "./volumes/storage/rest.fastapi-orm-template/logs:${FOT_API_LOGS_DIR:-/var/log/rest.fastapi-orm-template}"
-      - "./volumes/storage/rest.fastapi-orm-template/data:${FOT_API_DATA_DIR:-/var/lib/rest.fastapi-orm-template}"
+      - "./volumes/storage/rest-fastapi-orm-template/logs:${FOT_API_LOGS_DIR:-/var/log/rest-fastapi-orm-template}"
+      - "./volumes/storage/rest-fastapi-orm-template/data:${FOT_API_DATA_DIR:-/var/lib/rest-fastapi-orm-template}"
       - "./scripts/docker/docker-entrypoint.sh:/usr/local/bin/docker-entrypoint.sh"
-      - "./src:/app/rest.fastapi-orm-template"
+      - "./src:/app/rest-fastapi-orm-template"
       - "./volumes/.vscode-server:/home/fot-user/.vscode-server"
     # deploy:
     #   replicas: 0

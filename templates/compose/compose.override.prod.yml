@@ -41,7 +41,7 @@ services:
   #     - "${PGADMIN_PORT:-8080}:80"
 
   api:
-    image: bybatkhuu/rest.fastapi-orm-template:3.0.0-250216
+    image: bybatkhuu/rest-fastapi-orm-template:3.0.0-250216
     # volumes:
     #   - "api-vscode-server:/home/fot-user/.vscode-server"
     # depends_on:

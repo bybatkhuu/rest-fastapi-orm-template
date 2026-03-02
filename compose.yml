@@ -1,6 +1,6 @@
 services:
   db:
-    image: postgres:16.6-bookworm
+    image: postgres:18.3-trixie
     restart: unless-stopped
     environment:
       TERM: ${TERM:-xterm}
@@ -10,11 +10,11 @@ services:
       POSTGRES_PASSWORD: "${FOT_DB_PASSWORD:-FOT_DB_PASSWORD123}"
       POSTGRES_DB: ${FOT_DB_DATABASE:-fot_db}
     volumes:
-      - "db-data:/var/lib/postgresql/data"
+      - "./volumes/storage/postgresql/data:/var/lib/postgresql"
     tty: true
 
   api:
-    image: bybatkhuu/rest.fastapi-orm-template:latest
+    image: bybatkhuu/rest-fastapi-orm-template:latest
     build:
       context: .
     depends_on:
@@ -22,7 +22,7 @@ services:
     restart: unless-stopped
     environment:
       TERM: ${TERM:-xterm}
-      TZ: ${TZ:-Asia/Seoul}
+      TZ: ${TZ:-UTC}
       FOT_DB_HOST: ${FOT_DB_HOST:-db}
       FOT_DB_USERNAME: ${FOT_DB_USERNAME:-fot_admin}
       FOT_DB_PASSWORD: "${FOT_DB_PASSWORD:-FOT_DB_PASSWORD123}"
@@ -32,14 +32,9 @@ services:
       - path: .env
         required: false
     volumes:
-      - "api-logs:${FOT_API_LOGS_DIR:-/var/log/rest.fastapi-orm-template}"
-      - "api-data:${FOT_API_DATA_DIR:-/var/lib/rest.fastapi-orm-template}"
+      - "./volumes/configs/rest-fastapi-orm-template:${FOT_API_CONFIGS_DIR:-/etc/rest-fastapi-orm-template}"
+      - "./volumes/storage/rest-fastapi-orm-template/logs:${FOT_API_LOGS_DIR:-/var/log/rest-fastapi-orm-template}"
+      - "./volumes/storage/rest-fastapi-orm-template/data:${FOT_API_DATA_DIR:-/var/lib/rest-fastapi-orm-template}"
     ports:
       - "${FOT_API_PORT:-8000}:${FOT_API_PORT:-8000}"
     tty: true
-
-
-volumes:
-  db-data:
-  api-logs:
-  api-data:

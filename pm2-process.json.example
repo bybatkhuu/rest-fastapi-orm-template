@@ -3,6 +3,9 @@
 	"interpreter": "/usr/bin/env",
 	"script": "python",
 	"args": "-u -m src.api",
+	"env": {
+		"PYTHONUNBUFFERED": "1"
+	},
 	"min_uptime": 5000,
 	"max_restarts": 3,
 	"watch": false,
@@ -39,6 +42,7 @@
 		"**/data/**",
 		"**/dataset/**",
 		"**/datasets/**",
+		"**/volumes/storage/**",
 		"**/*._*",
 		"**/*.DS_Store",
 		"**/*.egg-info/**",
@@ -64,7 +68,6 @@
 		"**/*pytest.ini",
 		"**/*README.md",
 		"**/*Thumbs.db",
-		"**/*sample.py",
 		"**/*example.py",
 		"**/*test.py"
 	],
