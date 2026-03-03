@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from urllib.parse import quote_plus
 from typing import Any, Dict, Optional, Union
 

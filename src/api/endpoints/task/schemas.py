@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from typing import Union, List, Optional
 from typing_extensions import Self
 

@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from typing import List, Tuple
 
 from fastapi import APIRouter, Request, Depends, Path, Body, Query, HTTPException

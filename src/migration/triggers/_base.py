@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from typing import Union, List
 
 from pydantic import validate_call

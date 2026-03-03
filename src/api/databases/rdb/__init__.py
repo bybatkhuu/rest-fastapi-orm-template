@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from api.config import config
 
 from ._connect import *

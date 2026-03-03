@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from typing import AsyncGenerator
 
 # from sqlalchemy.orm import Session

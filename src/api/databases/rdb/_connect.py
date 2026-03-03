@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import asyncio
 
 from pydantic import validate_call, AnyUrl
