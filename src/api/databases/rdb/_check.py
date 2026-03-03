@@ -5,7 +5,8 @@ from pydantic import validate_call
 from sqlalchemy import Engine, Result, text
 from sqlalchemy.ext.asyncio import AsyncEngine
 
-from api.core.constants import WarnEnum
+from potato_util.constants import WarnEnum
+
 from api.config import config
 from api.logger import logger
 

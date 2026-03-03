@@ -1,4 +1,4 @@
-from typing import Union, List, Dict, Any, Optional
+from typing import Any
 
 from pydantic import validate_call
 from sqlalchemy import Select, select, Result, func
@@ -6,7 +6,8 @@ from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import DeclarativeBase, declarative_mixin
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api.core.constants import WarnEnum
+from potato_util.constants import WarnEnum
+
 from api.config import config
 from api.core.exceptions import EmptyValueError
 from api.core.models.mixins import BaseMixin

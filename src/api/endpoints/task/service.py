@@ -1,10 +1,10 @@
-from typing import List, Tuple
-
 from pydantic import validate_call
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api.core.constants import ErrorCodeEnum, WarnEnum
+from potato_util.constants import WarnEnum
+
+from api.core.constants import ErrorCodeEnum
 from api.config import config
 from api.core.exceptions import BaseHTTPException, EmptyValueError, NullConstraintError
 from api.endpoints.table_stat import service as table_stat_service

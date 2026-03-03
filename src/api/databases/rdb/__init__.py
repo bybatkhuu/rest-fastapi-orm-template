@@ -1,3 +1,5 @@
+# flake8: noqa
+
 from api.config import config
 
 from ._connect import *

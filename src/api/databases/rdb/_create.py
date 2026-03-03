@@ -4,7 +4,8 @@ from sqlalchemy import Engine, URL
 from sqlalchemy.ext.asyncio import AsyncEngine
 from sqlalchemy_utils import database_exists, create_database
 
-from api.core.constants import WarnEnum
+from potato_util.constants import WarnEnum
+
 from api.core.models import BaseORM
 from api.logger import logger
 

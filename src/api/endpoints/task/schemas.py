@@ -1,9 +1,14 @@
-from typing import Union, List, Optional
-from typing_extensions import Self
+import sys
+
+if sys.version_info >= (3, 11):
+    from typing import Self
+else:
+    from typing_extensions import Self
 
 from pydantic import Field, field_validator, model_validator, ConfigDict
 
-from api.core.constants import ALPHANUM_EXTEND_REGEX
+from potato_util.constants import ALPHANUM_EXTEND_REGEX
+
 from api.config import config
 from api.core.schemas import IdPM, TimestampPM, BasePM, BaseResPM, LinksResPM
 

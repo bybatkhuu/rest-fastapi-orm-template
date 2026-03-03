@@ -1,5 +1,3 @@
-from typing import List, Union
-
 from pydantic import validate_call
 from sqlalchemy import Engine
 from sqlalchemy.orm import scoped_session, close_all_sessions

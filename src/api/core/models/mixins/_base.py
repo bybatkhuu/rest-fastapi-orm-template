@@ -1,7 +1,7 @@
 import json
 from uuid import UUID
 from datetime import datetime
-from typing import Union, List, Dict, Any, Optional
+from typing import Any
 from collections.abc import Sequence
 
 from pydantic import validate_call
@@ -30,8 +30,9 @@ from sqlalchemy.orm import (
 )
 from sqlalchemy.util import ReadOnlyProperties
 
-from api.core.constants import WarnEnum
-from api.core import utils
+from potato_util.constants import WarnEnum
+from potato_util.generator import gen_unique_id
+
 from api.config import config
 from api.logger import logger
 
@@ -108,7 +109,7 @@ class BaseMixin(TimestampMixin, IdStrMixin):
         """
 
         _prefix = cls.__name__[0:3]
-        _id = utils.gen_unique_id(prefix=_prefix)
+        _id = gen_unique_id(prefix=_prefix)
         return _id
 
     @validate_call

@@ -1,3 +1,5 @@
+# flake8: noqa
+
 from ._read import *
 from ._delete import *
 from ._update import *

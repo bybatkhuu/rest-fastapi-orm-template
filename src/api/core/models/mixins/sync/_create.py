@@ -1,11 +1,12 @@
-from typing import Any, Dict, Union, List
+from typing import Any
 
 from pydantic import validate_call
 from sqlalchemy import Result
 from sqlalchemy.orm import DeclarativeBase, declarative_mixin, Session
 from sqlalchemy.exc import IntegrityError
 
-from api.core.constants import WarnEnum
+from potato_util.constants import WarnEnum
+
 from api.config import config
 
 if config.db.dialect == "postgresql":

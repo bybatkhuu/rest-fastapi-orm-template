@@ -1,4 +1,4 @@
-from typing import List, Dict, Union, Any
+from typing import Any
 
 from pydantic import validate_call
 from sqlalchemy import Update, update, Result
@@ -6,7 +6,8 @@ from sqlalchemy.orm import DeclarativeBase, declarative_mixin
 from sqlalchemy.exc import NoResultFound, IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api.core.constants import WarnEnum
+from potato_util.constants import WarnEnum
+
 from api.config import config
 
 if config.db.dialect == "postgresql":

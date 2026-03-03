@@ -3,7 +3,8 @@ from typing import Union
 from pydantic import validate_call
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api.core.constants import WarnEnum
+from potato_util.constants import WarnEnum
+
 from api.endpoints.table_stat.model import TableStatORM
 from api.logger import async_log_mode
 

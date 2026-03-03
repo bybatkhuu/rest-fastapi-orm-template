@@ -1,11 +1,12 @@
-from typing import List, Tuple
+from typing import Any
 
 from fastapi import APIRouter, Request, Depends, Path, Body, Query, HTTPException
 from pydantic import constr
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api.core.constants import ALPHANUM_HYPHEN_REGEX
-from api.core import utils
+from potato_util.constants import ALPHANUM_HYPHEN_REGEX
+from potato_util.http.fastapi import get_relative_url
+
 from api.config import config
 from api.core.dependencies import db as db_deps
 from api.core.responses import BaseResponse
@@ -54,7 +55,7 @@ async def get_tasks(
 
     _message = "Not found any task!"
     _orm_tasks: list[TaskORM] = []
-    _links = {
+    _links: dict[str, Any | None] = {
         "first": None,
         "prev": None,
         "next": None,
@@ -75,24 +76,24 @@ async def get_tasks(
         _url = request.url.remove_query_params(["skip", "limit", "is_desc"])
 
         if 0 < _all_count:
-            _links["first"] = utils.get_relative_url(
+            _links["first"] = get_relative_url(
                 _url.include_query_params(skip=0, limit=limit, is_desc=is_desc)
             )
 
             _last_skip = max((_all_count - 1) // limit * limit, 0)
-            _links["last"] = utils.get_relative_url(
+            _links["last"] = get_relative_url(
                 _url.include_query_params(skip=_last_skip, limit=limit, is_desc=is_desc)
             )
 
         if 0 < skip:
             _prev_skip = max(skip - limit, 0)
-            _links["prev"] = utils.get_relative_url(
+            _links["prev"] = get_relative_url(
                 _url.include_query_params(skip=_prev_skip, limit=limit, is_desc=is_desc)
             )
 
         if limit < len(_orm_tasks):
             _orm_tasks = _orm_tasks[:limit]
-            _links["next"] = utils.get_relative_url(
+            _links["next"] = get_relative_url(
                 _url.include_query_params(
                     skip=(skip + limit), limit=limit, is_desc=is_desc
                 )
