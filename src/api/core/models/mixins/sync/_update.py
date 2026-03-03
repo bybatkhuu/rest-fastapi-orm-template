@@ -144,7 +144,7 @@ class UpdateMixin(ReadMixin):
         if "id" in kwargs:
             del kwargs["id"]
 
-        _orm_object: Union[cls, None] = None
+        _orm_object: cls | None = None
         if orm_way:
             _orm_object: cls = cls.get(
                 session=session,
@@ -165,7 +165,7 @@ class UpdateMixin(ReadMixin):
 
                 _result: Result = session.execute(_stmt)
                 if returning:
-                    _orm_object: Union[cls, None] = _result.scalars().one()
+                    _orm_object: cls | None = _result.scalars().one()
 
                     if not _orm_object:
                         raise NoResultFound(
@@ -225,12 +225,12 @@ class UpdateMixin(ReadMixin):
     def update_by_ids(
         cls,
         session: Session,
-        ids: List[str],
+        ids: list[str],
         returning: bool = True,
         auto_commit: bool = False,
         warn_mode: WarnEnum = WarnEnum.DEBUG,
         **kwargs,
-    ) -> List[DeclarativeBase]:
+    ) -> list[DeclarativeBase]:
         """Update ORM objects into database by ID list.
 
         Args:
@@ -263,7 +263,7 @@ class UpdateMixin(ReadMixin):
         if "id" in kwargs:
             del kwargs["id"]
 
-        _orm_objects: List[cls] = []
+        _orm_objects: list[cls] = []
         try:
             _stmt: Update = update(cls).where(cls.id.in_(ids)).values(**kwargs)
             if returning:
@@ -271,7 +271,7 @@ class UpdateMixin(ReadMixin):
 
             _result: Result = session.execute(_stmt)
             if returning:
-                _orm_objects: List[cls] = _result.scalars().all()
+                _orm_objects: list[cls] = _result.scalars().all()
 
                 if not _orm_objects:
                     raise NoResultFound(
@@ -331,11 +331,11 @@ class UpdateMixin(ReadMixin):
     def update_objects(
         cls,
         session: Session,
-        orm_objects: List[DeclarativeBase],
+        orm_objects: list[DeclarativeBase],
         auto_commit: bool = False,
         warn_mode: WarnEnum = WarnEnum.DEBUG,
         **kwargs,
-    ) -> List[DeclarativeBase]:
+    ) -> list[DeclarativeBase]:
         """Update ORM objects into database.
 
         Args:
@@ -415,14 +415,14 @@ class UpdateMixin(ReadMixin):
     def update_by_where(
         cls,
         session: Session,
-        where: Union[List[Dict[str, Any]], Dict[str, Any]],
+        where: list[dict[str, Any]] | dict[str, Any],
         orm_way: bool = False,
         returning: bool = False,
         auto_commit: bool = False,
         allow_no_result: bool = True,
         warn_mode: WarnEnum = WarnEnum.DEBUG,
         **kwargs,
-    ) -> List[DeclarativeBase]:
+    ) -> list[DeclarativeBase]:
         """Update ORM objects into database by filter conditions.
 
         Args:
@@ -455,9 +455,9 @@ class UpdateMixin(ReadMixin):
             del kwargs["id"]
 
         _affected_count = 0
-        _orm_objects: List[cls] = []
+        _orm_objects: list[cls] = []
         if orm_way:
-            _orm_objects: List[cls] = cls.select_by_where(
+            _orm_objects: list[cls] = cls.select_by_where(
                 session=session,
                 where=where,
                 disable_limit=True,
@@ -465,7 +465,7 @@ class UpdateMixin(ReadMixin):
             )
 
             if _orm_objects:
-                _orm_objects: List[cls] = cls.update_objects(
+                _orm_objects: list[cls] = cls.update_objects(
                     session=session,
                     objects=_orm_objects,
                     auto_commit=auto_commit,
@@ -483,7 +483,7 @@ class UpdateMixin(ReadMixin):
 
                 _result: Result = session.execute(_stmt)
                 if returning:
-                    _orm_objects: List[cls] = _result.scalars().all()
+                    _orm_objects: list[cls] = _result.scalars().all()
                     _affected_count = len(_orm_objects)
 
                 if auto_commit:

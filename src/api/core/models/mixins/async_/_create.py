@@ -76,7 +76,7 @@ class AsyncCreateMixin(AsyncUpdateMixin):
         if "id" not in kwargs:
             kwargs["id"] = cls.gen_unique_id()
 
-        _orm_object: Union[DeclarativeBase, None] = None
+        _orm_object: DeclarativeBase | None = None
         try:
             if orm_way:
                 _orm_object = cls(**kwargs)
@@ -168,7 +168,7 @@ class AsyncCreateMixin(AsyncUpdateMixin):
             for _key, _val in kwargs.items():
                 setattr(self, _key, _val)
 
-            _orm_object: Union[DeclarativeBase, None] = await self.__class__.async_get(
+            _orm_object: DeclarativeBase | None = await self.__class__.async_get(
                 async_session=async_session,
                 id=self.id,
                 allow_no_result=True,
@@ -230,7 +230,7 @@ class AsyncCreateMixin(AsyncUpdateMixin):
         auto_commit: bool = False,
         warn_mode: WarnEnum = WarnEnum.DEBUG,
         **kwargs,
-    ) -> Union[DeclarativeBase, None]:
+    ) -> DeclarativeBase | None:
         """Upsert data into database.
 
         Args:
@@ -256,10 +256,10 @@ class AsyncCreateMixin(AsyncUpdateMixin):
         if not kwargs:
             raise EmptyValueError("No data provided to upsert!")
 
-        _orm_object: Union[cls, None] = None
+        _orm_object: cls | None = None
         if orm_way:
             if "id" in kwargs:
-                _orm_object: Union[cls, None] = await cls.async_get(
+                _orm_object: cls | None = await cls.async_get(
                     async_session=async_session,
                     id=kwargs["id"],
                     allow_no_result=True,
@@ -348,11 +348,11 @@ class AsyncCreateMixin(AsyncUpdateMixin):
     async def async_bulk_insert(
         cls,
         async_session: AsyncSession,
-        raw_data: List[Dict[str, Any]],
+        raw_data: list[dict[str, Any]],
         returning: bool = True,
         auto_commit: bool = False,
         warn_mode: WarnEnum = WarnEnum.DEBUG,
-    ) -> List[DeclarativeBase]:
+    ) -> list[DeclarativeBase]:
         """Bulk insert data into database.
 
         Args:
@@ -382,7 +382,7 @@ class AsyncCreateMixin(AsyncUpdateMixin):
             if "id" not in _data:
                 _data["id"] = cls.gen_unique_id()
 
-        _orm_objects: List[cls] = []
+        _orm_objects: list[cls] = []
         try:
             _stmt: Insert = insert(cls)
             if returning:
@@ -390,7 +390,7 @@ class AsyncCreateMixin(AsyncUpdateMixin):
 
             _result: Result = await async_session.execute(_stmt, raw_data)
             if returning:
-                _orm_objects: List[cls] = _result.scalars().all()
+                _orm_objects: list[cls] = _result.scalars().all()
 
             if auto_commit:
                 await async_session.commit()

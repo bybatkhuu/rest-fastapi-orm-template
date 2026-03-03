@@ -10,7 +10,6 @@ from typing import Dict, Any
 ## Third-party libraries
 import aiohttp
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -32,7 +31,7 @@ async def main() -> None:
     _headers = {"Accept": "application/json"}
 
     logger.info("Sending request...")
-    _result_dict: Dict[str, Any] = {}
+    _result_dict: dict[str, Any] = {}
     async with aiohttp.ClientSession() as _http_session:
         async with _http_session.request(
             method=_method, url=_url, headers=_headers, json=_payload

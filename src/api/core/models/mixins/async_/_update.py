@@ -145,7 +145,7 @@ class AsyncUpdateMixin(AsyncReadMixin):
         if "id" in kwargs:
             del kwargs["id"]
 
-        _orm_object: Union[cls, None] = None
+        _orm_object: cls | None = None
         if orm_way:
             _orm_object: cls = await cls.async_get(
                 async_session=async_session,
@@ -166,7 +166,7 @@ class AsyncUpdateMixin(AsyncReadMixin):
 
                 _result: Result = await async_session.execute(_stmt)
                 if returning:
-                    _orm_object: Union[cls, None] = _result.scalars().one()
+                    _orm_object: cls | None = _result.scalars().one()
 
                     if not _orm_object:
                         raise NoResultFound(
@@ -226,12 +226,12 @@ class AsyncUpdateMixin(AsyncReadMixin):
     async def async_update_by_ids(
         cls,
         async_session: AsyncSession,
-        ids: List[str],
+        ids: list[str],
         returning: bool = True,
         auto_commit: bool = False,
         warn_mode: WarnEnum = WarnEnum.DEBUG,
         **kwargs,
-    ) -> List[DeclarativeBase]:
+    ) -> list[DeclarativeBase]:
         """Update ORM objects into database by ID list.
 
         Args:
@@ -264,7 +264,7 @@ class AsyncUpdateMixin(AsyncReadMixin):
         if "id" in kwargs:
             del kwargs["id"]
 
-        _orm_objects: List[cls] = []
+        _orm_objects: list[cls] = []
         try:
             _stmt: Update = update(cls).where(cls.id.in_(ids)).values(**kwargs)
             if returning:
@@ -272,7 +272,7 @@ class AsyncUpdateMixin(AsyncReadMixin):
 
             _result: Result = await async_session.execute(_stmt)
             if returning:
-                _orm_objects: List[cls] = _result.scalars().all()
+                _orm_objects: list[cls] = _result.scalars().all()
 
                 if not _orm_objects:
                     raise NoResultFound(
@@ -332,11 +332,11 @@ class AsyncUpdateMixin(AsyncReadMixin):
     async def async_update_objects(
         cls,
         async_session: AsyncSession,
-        orm_objects: List[DeclarativeBase],
+        orm_objects: list[DeclarativeBase],
         auto_commit: bool = False,
         warn_mode: WarnEnum = WarnEnum.DEBUG,
         **kwargs,
-    ) -> List[DeclarativeBase]:
+    ) -> list[DeclarativeBase]:
         """Update ORM objects into database.
 
         Args:
@@ -416,14 +416,14 @@ class AsyncUpdateMixin(AsyncReadMixin):
     async def async_update_by_where(
         cls,
         async_session: AsyncSession,
-        where: Union[List[Dict[str, Any]], Dict[str, Any]],
+        where: list[dict[str, Any]] | dict[str, Any],
         orm_way: bool = False,
         returning: bool = False,
         auto_commit: bool = False,
         allow_no_result: bool = True,
         warn_mode: WarnEnum = WarnEnum.DEBUG,
         **kwargs,
-    ) -> List[DeclarativeBase]:
+    ) -> list[DeclarativeBase]:
         """Update ORM objects into database by filter conditions.
 
         Args:
@@ -456,9 +456,9 @@ class AsyncUpdateMixin(AsyncReadMixin):
             del kwargs["id"]
 
         _affected_count = 0
-        _orm_objects: List[cls] = []
+        _orm_objects: list[cls] = []
         if orm_way:
-            _orm_objects: List[cls] = await cls.async_select_by_where(
+            _orm_objects: list[cls] = await cls.async_select_by_where(
                 async_session=async_session,
                 where=where,
                 disable_limit=True,
@@ -466,7 +466,7 @@ class AsyncUpdateMixin(AsyncReadMixin):
             )
 
             if _orm_objects:
-                _orm_objects: List[cls] = await cls.async_update_objects(
+                _orm_objects: list[cls] = await cls.async_update_objects(
                     async_session=async_session,
                     objects=_orm_objects,
                     auto_commit=auto_commit,
@@ -484,7 +484,7 @@ class AsyncUpdateMixin(AsyncReadMixin):
 
                 _result: Result = await async_session.execute(_stmt)
                 if returning:
-                    _orm_objects: List[cls] = _result.scalars().all()
+                    _orm_objects: list[cls] = _result.scalars().all()
                     _affected_count = len(_orm_objects)
 
                 if auto_commit:

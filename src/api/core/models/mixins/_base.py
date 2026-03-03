@@ -1,7 +1,8 @@
 import json
 from uuid import UUID
 from datetime import datetime
-from typing import Union, List, Dict, Any, Optional, Sequence
+from typing import Union, List, Dict, Any, Optional
+from collections.abc import Sequence
 
 from pydantic import validate_call
 from sqlalchemy import (
@@ -113,9 +114,9 @@ class BaseMixin(TimestampMixin, IdStrMixin):
     @validate_call
     def to_dict(
         self,
-        excludes: Optional[List[str]] = None,
-        load_relations: Optional[List[str]] = None,
-    ) -> Dict[str, Any]:
+        excludes: list[str] | None = None,
+        load_relations: list[str] | None = None,
+    ) -> dict[str, Any]:
         """Convert ORM object to dictionary.
 
         Args:
@@ -154,8 +155,8 @@ class BaseMixin(TimestampMixin, IdStrMixin):
     @validate_call
     def to_json(
         self,
-        excludes: Optional[List[str]] = None,
-        load_relations: Optional[List[str]] = None,
+        excludes: list[str] | None = None,
+        load_relations: list[str] | None = None,
     ) -> str:
         """Convert ORM object to JSON string.
 
@@ -178,10 +179,10 @@ class BaseMixin(TimestampMixin, IdStrMixin):
     @validate_call(config={"arbitrary_types_allowed": True})
     def to_dict_list(
         cls,
-        orm_objects: List[DeclarativeBase],
-        excludes: Optional[List[str]] = None,
-        load_relations: Optional[List[str]] = None,
-    ) -> List[Dict[str, Any]]:
+        orm_objects: list[DeclarativeBase],
+        excludes: list[str] | None = None,
+        load_relations: list[str] | None = None,
+    ) -> list[dict[str, Any]]:
         """Convert list of ORM objects to list of dictionaries.
 
         Args:
@@ -231,9 +232,9 @@ class BaseMixin(TimestampMixin, IdStrMixin):
     @validate_call(config={"arbitrary_types_allowed": True})
     def _build_where(
         cls,
-        stmt: Union[Select, Insert, Update, Delete],
-        where: Union[List[Dict[str, Any]], Dict[str, Any]],
-    ) -> Union[Select, Insert, Update, Delete]:
+        stmt: Select | Insert | Update | Delete,
+        where: list[dict[str, Any]] | dict[str, Any],
+    ) -> Select | Insert | Update | Delete:
         """Build SQLAlchemy SQL statement with `where` filter conditions.
 
         Args:
@@ -297,12 +298,12 @@ class BaseMixin(TimestampMixin, IdStrMixin):
     @validate_call
     def _build_select(
         cls,
-        where: Union[List[Dict[str, Any]], Dict[str, Any], None] = None,
+        where: list[dict[str, Any]] | dict[str, Any] | None = None,
         offset: int = 0,
         limit: int = config.db.select_limit,
-        order_by: Union[List[str], str, None] = None,
+        order_by: list[str] | str | None = None,
         is_desc: bool = True,
-        joins: Optional[List[str]] = None,
+        joins: list[str] | None = None,
         disable_limit: bool = False,
     ) -> Select:
         """Build SQLAlchemy select statement for ORM object.

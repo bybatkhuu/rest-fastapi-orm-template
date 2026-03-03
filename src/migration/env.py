@@ -8,7 +8,6 @@ from api.config import config as api_config
 from api.databases.rdb import make_engine, check_db
 from api.core.models import BaseORM
 
-
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config

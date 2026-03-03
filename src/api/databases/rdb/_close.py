@@ -15,8 +15,8 @@ from api.logger import logger
 ## Async
 @validate_call(config={"arbitrary_types_allowed": True})
 async def async_close_db(
-    sessions: List[Union[scoped_session, async_scoped_session]],
-    engines: List[Union[Engine, AsyncEngine]],
+    sessions: list[scoped_session | async_scoped_session],
+    engines: list[Engine | AsyncEngine],
 ) -> None:
     """Close all database sessions (connections) and dispose all engines.
 
@@ -53,7 +53,7 @@ async def async_close_db(
 
 ## Sync
 @validate_call(config={"arbitrary_types_allowed": True})
-def close_db(sessions: List[scoped_session], engines: List[Engine]) -> None:
+def close_db(sessions: list[scoped_session], engines: list[Engine]) -> None:
     """Close all database sessions (connections) and dispose all engines.
 
     Args:

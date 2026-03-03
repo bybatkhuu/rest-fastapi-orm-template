@@ -7,7 +7,6 @@ from api.core import utils
 
 from .mixins import AsyncCRUDMixin, CRUDMixin
 
-
 _NAMING_CONVENTION = {
     "ix": "ix__%(table_name)s__%(column_0_name)s",
     "uq": "uq__%(table_name)s__%(column_0_name)s",

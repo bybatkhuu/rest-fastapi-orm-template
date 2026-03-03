@@ -15,7 +15,6 @@ from .schemas import TaskBasePM, TaskUpPM, ResTaskPM, ResTasksPM
 from .model import TaskORM
 from . import service
 
-
 router = APIRouter(prefix="/tasks", tags=["Tasks"])
 
 
@@ -54,7 +53,7 @@ async def get_tasks(
     logger.info(f"[{_request_id}] - Getting task list...")
 
     _message = "Not found any task!"
-    _orm_tasks: List[TaskORM] = []
+    _orm_tasks: list[TaskORM] = []
     _links = {
         "first": None,
         "prev": None,
@@ -64,7 +63,7 @@ async def get_tasks(
     _list_count = 0
     _all_count = 0
     try:
-        _result_tuple: Tuple[List[TaskORM], int] = await service.async_get_list(
+        _result_tuple: tuple[list[TaskORM], int] = await service.async_get_list(
             async_session=db_session,
             request_id=_request_id,
             offset=skip,

@@ -145,7 +145,7 @@ class DeleteMixin(ReadMixin):
     def delete_by_ids(
         cls,
         session: Session,
-        ids: List[str],
+        ids: list[str],
         auto_commit: bool = False,
         warn_mode: WarnEnum = WarnEnum.DEBUG,
     ) -> None:
@@ -211,7 +211,7 @@ class DeleteMixin(ReadMixin):
     def delete_objects(
         cls,
         session: Session,
-        orm_objects: List[DeclarativeBase],
+        orm_objects: list[DeclarativeBase],
         auto_commit: bool = False,
         warn_mode: WarnEnum = WarnEnum.DEBUG,
     ) -> None:
@@ -268,7 +268,7 @@ class DeleteMixin(ReadMixin):
     def delete_by_where(
         cls,
         session: Session,
-        where: Union[List[Dict[str, Any]], Dict[str, Any]],
+        where: list[dict[str, Any]] | dict[str, Any],
         orm_way: bool = False,
         auto_commit: bool = False,
         allow_no_result: bool = False,
@@ -290,7 +290,7 @@ class DeleteMixin(ReadMixin):
         """
 
         if orm_way:
-            _orm_objects: List[cls] = cls.select_by_where(
+            _orm_objects: list[cls] = cls.select_by_where(
                 session=session,
                 where=where,
                 disable_limit=True,

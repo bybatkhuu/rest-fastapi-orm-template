@@ -23,7 +23,7 @@ async def async_get_list(
     is_desc: bool = config.db.select_is_desc,
     warn_mode: WarnEnum = WarnEnum.IGNORE,
     **kwargs,
-) -> Tuple[List[TaskORM], int]:
+) -> tuple[list[TaskORM], int]:
     """Get list of tasks and total count.
 
     Args:
@@ -48,7 +48,7 @@ async def async_get_list(
         for _key, _val in kwargs.items():
             _where.append({"column": _key, "value": _val})
 
-    _orm_tasks: List[TaskORM] = await TaskORM.async_select_by_where(
+    _orm_tasks: list[TaskORM] = await TaskORM.async_select_by_where(
         async_session=async_session,
         where=_where,
         offset=offset,

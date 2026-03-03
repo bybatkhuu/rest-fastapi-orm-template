@@ -34,7 +34,7 @@ async def async_get_row_count(
         warn_mode=warn_mode,
     )
 
-    _table_stat_orm: Union[TableStatORM, None] = await TableStatORM.async_get_by_where(
+    _table_stat_orm: TableStatORM | None = await TableStatORM.async_get_by_where(
         async_session=async_session, where={"column": "table_name", "value": table_name}
     )
 

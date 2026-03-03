@@ -19,16 +19,16 @@ class ReadMixin(BaseMixin):
     def select_by_where(
         cls,
         session: Session,
-        where: Union[List[Dict[str, Any]], Dict[str, Any]],
+        where: list[dict[str, Any]] | dict[str, Any],
         offset: int = 0,
         limit: int = config.db.select_limit,
-        order_by: Union[List[str], str, None] = None,
+        order_by: list[str] | str | None = None,
         is_desc: bool = True,
-        joins: Optional[List[str]] = None,
+        joins: list[str] | None = None,
         disable_limit: bool = False,
         allow_no_result: bool = True,
         warn_mode: WarnEnum = WarnEnum.DEBUG,
-    ) -> List[DeclarativeBase]:
+    ) -> list[DeclarativeBase]:
         """Select ORM objects from database by where filter conditions.
 
         Args:
@@ -52,7 +52,7 @@ class ReadMixin(BaseMixin):
             List[DeclarativeBase]: List of ORM objects.
         """
 
-        _orm_objects: List[cls] = []
+        _orm_objects: list[cls] = []
         try:
             _stmt: Select = cls._build_select(
                 where=where,
@@ -68,7 +68,7 @@ class ReadMixin(BaseMixin):
             if joins:
                 _result = _result.unique()
 
-            _orm_objects: List[cls] = _result.scalars().all()
+            _orm_objects: list[cls] = _result.scalars().all()
         except Exception:
             _message = f"Failed to get `{cls.__name__}` objects from database by filtering with '{where}'!"
             if warn_mode == WarnEnum.ALWAYS:
@@ -93,11 +93,11 @@ class ReadMixin(BaseMixin):
         offset: int = 0,
         limit: int = config.db.select_limit,
         is_desc: bool = True,
-        joins: Optional[List[str]] = None,
+        joins: list[str] | None = None,
         disable_limit: bool = False,
         allow_no_result: bool = True,
         warn_mode: WarnEnum = WarnEnum.DEBUG,
-    ) -> List[DeclarativeBase]:
+    ) -> list[DeclarativeBase]:
         """Select ORM objects from database.
 
         Args:
@@ -118,7 +118,7 @@ class ReadMixin(BaseMixin):
         """
 
         try:
-            _orm_objects: List[cls] = cls.select_by_where(
+            _orm_objects: list[cls] = cls.select_by_where(
                 session=session,
                 where=[],
                 offset=offset,
@@ -148,7 +148,7 @@ class ReadMixin(BaseMixin):
         id: str,
         allow_no_result: bool = False,
         warn_mode: WarnEnum = WarnEnum.DEBUG,
-    ) -> Union[DeclarativeBase, None]:
+    ) -> DeclarativeBase | None:
         """Get ORM object from database by ID.
 
         Args:
@@ -165,9 +165,9 @@ class ReadMixin(BaseMixin):
             Union[DeclarativeBase, None]: ORM object or None.
         """
 
-        _orm_object: Union[cls, None] = None
+        _orm_object: cls | None = None
         try:
-            _orm_object: Union[cls, None] = session.get(cls, id)
+            _orm_object: cls | None = session.get(cls, id)
         except Exception:
             _message = (
                 f"Failed to get `{cls.__name__}` object with '{id}' ID from database!"
@@ -191,11 +191,11 @@ class ReadMixin(BaseMixin):
     def get_by_where(
         cls,
         session: Session,
-        where: Union[List[Dict[str, Any]], Dict[str, Any]],
-        joins: Optional[List[str]] = None,
+        where: list[dict[str, Any]] | dict[str, Any],
+        joins: list[str] | None = None,
         allow_no_result: bool = True,
         warn_mode: WarnEnum = WarnEnum.DEBUG,
-    ) -> Union[DeclarativeBase, None]:
+    ) -> DeclarativeBase | None:
         """Get ORM object from database by where filter conditions.
 
         Args:
@@ -214,9 +214,9 @@ class ReadMixin(BaseMixin):
             Union[DeclarativeBase, None]: ORM object or None.
         """
 
-        _orm_object: Union[cls, None] = None
+        _orm_object: cls | None = None
         try:
-            _orm_objects: List[cls] = cls.select_by_where(
+            _orm_objects: list[cls] = cls.select_by_where(
                 session=session,
                 where=where,
                 limit=1,
@@ -243,8 +243,8 @@ class ReadMixin(BaseMixin):
     @classmethod
     @validate_call(config={"arbitrary_types_allowed": True})
     def get_by_ids(
-        cls, session: Session, ids: List[str], warn_mode: WarnEnum = WarnEnum.DEBUG
-    ) -> List[DeclarativeBase]:
+        cls, session: Session, ids: list[str], warn_mode: WarnEnum = WarnEnum.DEBUG
+    ) -> list[DeclarativeBase]:
         """Get ORM objects from database by IDs.
 
         Args:
@@ -264,11 +264,11 @@ class ReadMixin(BaseMixin):
         if not ids:
             raise EmptyValueError("No IDs provided to select!")
 
-        _orm_objects: List[cls] = []
+        _orm_objects: list[cls] = []
         try:
             _stmt: Select = select(cls).where(cls.id.in_(ids))
             _result: Result = session.execute(_stmt)
-            _orm_objects: List[cls] = _result.scalars().all()
+            _orm_objects: list[cls] = _result.scalars().all()
 
             if not _orm_objects:
                 raise NoResultFound(
@@ -363,7 +363,7 @@ class ReadMixin(BaseMixin):
     def count_by_where(
         cls,
         session: Session,
-        where: Union[List[Dict[str, Any]], Dict[str, Any]],
+        where: list[dict[str, Any]] | dict[str, Any],
         warn_mode: WarnEnum = WarnEnum.DEBUG,
     ) -> int:
         """Count ORM objects in database by filter conditions.

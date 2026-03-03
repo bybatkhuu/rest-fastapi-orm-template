@@ -18,27 +18,27 @@ class DbConfig(BaseConfig):
     username: constr(strip_whitespace=True) = Field(..., min_length=2, max_length=32)  # type: ignore
     password: SecretStr = Field(..., min_length=8, max_length=64)
     database: constr(strip_whitespace=True) = Field(..., min_length=2, max_length=128)  # type: ignore
-    dsn_url: Optional[SecretStr] = Field(default=None)
+    dsn_url: SecretStr | None = Field(default=None)
 
-    read_host: Optional[
+    read_host: None | (
         constr(strip_whitespace=True, min_length=2, max_length=128)  # type: ignore
-    ] = Field(default=None)
-    read_port: Optional[conint(ge=100, le=65535)] = Field(default=None)  # type: ignore
-    read_username: Optional[
+    ) = Field(default=None)
+    read_port: conint(ge=100, le=65535) | None = Field(default=None)  # type: ignore
+    read_username: None | (
         constr(strip_whitespace=True, min_length=2, max_length=32)  # type: ignore
-    ] = Field(default=None)
-    read_password: Optional[SecretStr] = Field(default=None, min_length=8, max_length=64)  # type: ignore
-    read_database: Optional[
+    ) = Field(default=None)
+    read_password: SecretStr | None = Field(default=None, min_length=8, max_length=64)  # type: ignore
+    read_database: None | (
         constr(strip_whitespace=True, min_length=2, max_length=128)  # type: ignore
-    ] = Field(default=None)
-    read_dsn_url: Optional[SecretStr] = Field(default=None)
+    ) = Field(default=None)
+    read_dsn_url: SecretStr | None = Field(default=None)
 
-    connect_args: Optional[Dict[str, Any]] = Field(default=None)
+    connect_args: dict[str, Any] | None = Field(default=None)
     prefix: constr(strip_whitespace=True) = Field(..., max_length=16)  # type: ignore
     max_try_connect: int = Field(..., ge=1, le=100)
     retry_after: int = Field(..., ge=1, le=600)
-    echo_sql: Union[bool, constr(strip_whitespace=True, pattern=r"^(debug)$")] = Field(...)  # type: ignore
-    echo_pool: Union[bool, constr(strip_whitespace=True, pattern=r"^(debug)$")] = Field(  # type: ignore
+    echo_sql: bool | constr(strip_whitespace=True, pattern=r"^(debug)$") = Field(...)  # type: ignore
+    echo_pool: bool | constr(strip_whitespace=True, pattern=r"^(debug)$") = Field(  # type: ignore
         ...
     )
     pool_size: int = Field(..., ge=0, le=1000)  # 0 means no limit
@@ -57,7 +57,7 @@ class DbConfig(BaseConfig):
 class FrozenDbConfig(DbConfig):
     @model_validator(mode="before")
     @classmethod
-    def _check_all(cls, values: Dict[str, Any]) -> Dict[str, Any]:
+    def _check_all(cls, values: dict[str, Any]) -> dict[str, Any]:
         _dsn_url_template = (
             "{dialect}+{driver}://{username}:{password}@{host}:{port}/{database}"
         )

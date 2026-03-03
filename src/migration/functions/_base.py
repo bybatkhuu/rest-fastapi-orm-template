@@ -5,8 +5,7 @@ from alembic import op
 def create_fn_generate_pk() -> None:
     """Create function to generate primary key for table."""
 
-    op.execute(
-        """
+    op.execute("""
         CREATE OR REPLACE FUNCTION fn_tr__generate_pk()
         RETURNS TRIGGER AS $BODY$
         DECLARE
@@ -24,8 +23,7 @@ def create_fn_generate_pk() -> None:
             RETURN NEW;
         END;
         $BODY$ LANGUAGE plpgsql;
-        """
-    )
+        """)
 
     return
 
@@ -33,8 +31,7 @@ def create_fn_generate_pk() -> None:
 def create_fn_updated_at() -> None:
     """Create function to update `updated_at` column."""
 
-    op.execute(
-        """
+    op.execute("""
         CREATE OR REPLACE FUNCTION fn_tr__updated_at()
         RETURNS TRIGGER AS $BODY$
         BEGIN
@@ -43,8 +40,7 @@ def create_fn_updated_at() -> None:
             RETURN NEW;
         END;
         $BODY$ LANGUAGE plpgsql;
-        """
-    )
+        """)
 
     return
 
@@ -57,8 +53,7 @@ def create_fn_stat_count(table_name: str) -> None:
         table_name (str, required): Name of the stat table.
     """
 
-    op.execute(
-        f"""
+    op.execute(f"""
         CREATE OR REPLACE FUNCTION fn_tr__update_stat_count()
         RETURNS TRIGGER AS $BODY$
         BEGIN
@@ -77,11 +72,9 @@ def create_fn_stat_count(table_name: str) -> None:
             RETURN NULL;
         END;
         $BODY$ LANGUAGE plpgsql;
-        """
-    )
+        """)
 
-    op.execute(
-        f"""
+    op.execute(f"""
         CREATE OR REPLACE FUNCTION fn_tr__truncate_stat_count()
         RETURNS TRIGGER AS $BODY$
         BEGIN
@@ -92,8 +85,7 @@ def create_fn_stat_count(table_name: str) -> None:
             RETURN NULL;
         END;
         $BODY$ LANGUAGE plpgsql;
-        """
-    )
+        """)
 
     return
 
