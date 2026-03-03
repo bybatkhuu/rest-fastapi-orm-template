@@ -15,13 +15,17 @@ class DbConfig(BaseConfig):
 
     host: str = Field(default="localhost", min_length=2, max_length=128)
     port: int = Field(default=5432, ge=100, le=65535)
-    username: str = Field(default="fot_admin", min_length=2, max_length=32)
+    username: str = Field(
+        default=f"{ENV_PREFIX.lower()}admin", min_length=2, max_length=32
+    )
     password: SecretStr = Field(
         default_factory=lambda: SecretStr(f"{ENV_PREFIX}DB_PASSWORD123"),
         min_length=8,
         max_length=64,
     )
-    database: str = Field(default="fot_db", min_length=2, max_length=128)
+    database: str = Field(
+        default=f"{ENV_PREFIX.lower()}db", min_length=2, max_length=128
+    )
     dsn_url: SecretStr | None = Field(default=None)
 
     read_host: str | None = Field(default=None, min_length=2, max_length=128)
@@ -32,7 +36,7 @@ class DbConfig(BaseConfig):
     read_dsn_url: SecretStr | None = Field(default=None)
 
     connect_args: dict[str, Any] | None = Field(default={"sslmode": "prefer"})
-    prefix: str = Field(default="fot_", max_length=16)
+    prefix: str = Field(default=f"{ENV_PREFIX.lower()}", max_length=16)
     max_try_connect: int = Field(default=3, ge=1, le=100)
     retry_after: int = Field(default=4, ge=1, le=600)
     echo_sql: bool | constr(strip_whitespace=True, pattern=r"^(debug)$") = Field(default=False)  # type: ignore
@@ -55,50 +59,51 @@ class DbConfig(BaseConfig):
 class FrozenDbConfig(DbConfig):
     @model_validator(mode="before")
     @classmethod
-    def _check_all(cls, values: dict[str, Any]) -> dict[str, Any]:
-        _dsn_url_template = (
-            "{dialect}+{driver}://{username}:{password}@{host}:{port}/{database}"
-        )
-
-        if not values["dsn_url"]:
-            _password = values["password"]
-            if isinstance(_password, SecretStr):
-                _password = _password.get_secret_value()
-
-            _encoded_password = quote_plus(_password)
-            values["dsn_url"] = _dsn_url_template.format(
-                dialect=values["dialect"],
-                driver=values["driver"],
-                username=values["username"],
-                password=_encoded_password,
-                host=values["host"],
-                port=values["port"],
-                database=values["database"],
+    def _check_all(cls, data: Any) -> Any:
+        if isinstance(data, dict):
+            _dsn_url_template = (
+                "{dialect}+{driver}://{username}:{password}@{host}:{port}/{database}"
             )
 
-        if not values["read_dsn_url"]:
-            _read_password = ""
-            if values["read_password"]:
-                _read_password = values["read_password"]
-                if isinstance(_read_password, SecretStr):
-                    _read_password = _read_password.get_secret_value()
-            else:
-                _read_password = values["password"]
-                if isinstance(_read_password, SecretStr):
-                    _read_password = quote_plus(_read_password.get_secret_value())
+            if ("dsn_url" in data) and (not data["dsn_url"]):
+                _password = data["password"]
+                if isinstance(_password, SecretStr):
+                    _password = _password.get_secret_value()
 
-            _encoded_read_password = quote_plus(_read_password)
-            values["read_dsn_url"] = _dsn_url_template.format(
-                dialect=values["dialect"],
-                driver=values["driver"],
-                username=values["read_username"] or values["username"],
-                password=_encoded_read_password,
-                host=values["read_host"] or values["host"],
-                port=values["read_port"] or values["port"],
-                database=values["read_database"] or values["database"],
-            )
+                _encoded_password = quote_plus(_password)
+                data["dsn_url"] = _dsn_url_template.format(
+                    dialect=data["dialect"],
+                    driver=data["driver"],
+                    username=data["username"],
+                    password=_encoded_password,
+                    host=data["host"],
+                    port=data["port"],
+                    database=data["database"],
+                )
 
-        return values
+            if ("read_dsn_url" in data) and (not data["read_dsn_url"]):
+                _read_password = ""
+                if data["read_password"]:
+                    _read_password = data["read_password"]
+                    if isinstance(_read_password, SecretStr):
+                        _read_password = _read_password.get_secret_value()
+                else:
+                    _read_password = data["password"]
+                    if isinstance(_read_password, SecretStr):
+                        _read_password = quote_plus(_read_password.get_secret_value())
+
+                _encoded_read_password = quote_plus(_read_password)
+                data["read_dsn_url"] = _dsn_url_template.format(
+                    dialect=data["dialect"],
+                    driver=data["driver"],
+                    username=data["read_username"] or data["username"],
+                    password=_encoded_read_password,
+                    host=data["read_host"] or data["host"],
+                    port=data["read_port"] or data["port"],
+                    database=data["read_database"] or data["database"],
+                )
+
+        return data
 
     model_config = SettingsConfigDict(frozen=True)
 
