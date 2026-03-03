@@ -1,5 +1,3 @@
-from typing import Union, List
-
 from pydantic import validate_call
 from alembic import op
 
@@ -16,12 +14,14 @@ def create_tr_generate_pk(table_names: list[str] | str) -> None:
         table_names = [table_names]
 
     for _table_name in table_names:
-        op.execute(f"""
+        op.execute(
+            f"""
             CREATE OR REPLACE TRIGGER tr__generate_pk__{_table_name}
             BEFORE INSERT ON "{_table_name}"
             FOR EACH ROW
             EXECUTE FUNCTION fn_tr__generate_pk();
-            """)
+            """
+        )
 
     return
 
@@ -38,12 +38,14 @@ def create_tr_updated_at(table_names: list[str] | str) -> None:
         table_names = [table_names]
 
     for _table_name in table_names:
-        op.execute(f"""
+        op.execute(
+            f"""
                 CREATE OR REPLACE TRIGGER tr__updated_at__{_table_name}
                 BEFORE UPDATE ON "{_table_name}"
                 FOR EACH ROW
                 EXECUTE PROCEDURE fn_tr__updated_at();
-                """)
+                """
+        )
 
     return
 
@@ -60,19 +62,23 @@ def create_tr_stat_count(table_names: list[str] | str) -> None:
         table_names = [table_names]
 
     for _table_name in table_names:
-        op.execute(f"""
+        op.execute(
+            f"""
             CREATE OR REPLACE TRIGGER tr__update_stat_count__{_table_name}
             AFTER INSERT OR DELETE ON "{_table_name}"
             FOR EACH ROW
             EXECUTE FUNCTION fn_tr__update_stat_count();
-            """)
+            """
+        )
 
-        op.execute(f"""
+        op.execute(
+            f"""
             CREATE OR REPLACE TRIGGER tr__truncate_stat_count__{_table_name}
             AFTER TRUNCATE ON "{_table_name}"
             FOR EACH STATEMENT
             EXECUTE FUNCTION fn_tr__truncate_stat_count();
-            """)
+            """
+        )
 
     return
 
