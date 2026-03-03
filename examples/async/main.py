@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 
-## Standard libraries
+# Standard libraries
 import sys
 import logging
 import pprint
 import asyncio
-from typing import Dict, Any
+from typing import Any
 
-## Third-party libraries
+# Third-party libraries
 import aiohttp
 
 logger = logging.getLogger(__name__)

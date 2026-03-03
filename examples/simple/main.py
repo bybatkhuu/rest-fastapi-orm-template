@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 
-## Standard libraries
+# Standard libraries
 import sys
 import logging
 import pprint
-from typing import Dict, Any
+from typing import Any
 
-## Third-party libraries
+# Third-party libraries
 import requests
 
 logger = logging.getLogger(__name__)

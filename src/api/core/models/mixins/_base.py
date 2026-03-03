@@ -327,7 +327,7 @@ class BaseMixin(TimestampMixin, IdStrMixin):
         if not is_desc:
             _sort_direct = asc
 
-        ## Deffered join to improve performance:
+        # Deffered join to improve performance:
         # Subquery:
         _sub_query: Select = select(cls.id)
         if where:
