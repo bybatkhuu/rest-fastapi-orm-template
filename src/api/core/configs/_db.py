@@ -1,55 +1,53 @@
+from typing import Any
 from urllib.parse import quote_plus
-from typing import Any, Dict, Optional, Union
 
-from pydantic import Field, conint, constr, SecretStr, model_validator
+from pydantic import Field, constr, SecretStr, model_validator
 from pydantic_settings import SettingsConfigDict
 
-from api.core.constants import ENV_PREFIX_DB
+from api.core.constants import ENV_PREFIX, ENV_PREFIX_DB
 
 from ._base import BaseConfig
 
 
 class DbConfig(BaseConfig):
-    dialect: constr(strip_whitespace=True) = Field(..., min_length=2, max_length=32)  # type: ignore
-    driver: constr(strip_whitespace=True) = Field(..., min_length=2, max_length=32)  # type: ignore
+    dialect: str = Field(default="postgresql", min_length=2, max_length=32)
+    driver: str = Field(default="psycopg", min_length=2, max_length=32)
 
-    host: constr(strip_whitespace=True) = Field(..., min_length=2, max_length=128)  # type: ignore
-    port: int = Field(..., ge=100, le=65535)
-    username: constr(strip_whitespace=True) = Field(..., min_length=2, max_length=32)  # type: ignore
-    password: SecretStr = Field(..., min_length=8, max_length=64)
-    database: constr(strip_whitespace=True) = Field(..., min_length=2, max_length=128)  # type: ignore
+    host: str = Field(default="localhost", min_length=2, max_length=128)
+    port: int = Field(default=5432, ge=100, le=65535)
+    username: str = Field(default="fot_admin", min_length=2, max_length=32)
+    password: SecretStr = Field(
+        default_factory=lambda: SecretStr(f"{ENV_PREFIX}DB_PASSWORD123"),
+        min_length=8,
+        max_length=64,
+    )
+    database: str = Field(default="fot_db", min_length=2, max_length=128)
     dsn_url: SecretStr | None = Field(default=None)
 
-    read_host: None | (
-        constr(strip_whitespace=True, min_length=2, max_length=128)  # type: ignore
-    ) = Field(default=None)
-    read_port: conint(ge=100, le=65535) | None = Field(default=None)  # type: ignore
-    read_username: None | (
-        constr(strip_whitespace=True, min_length=2, max_length=32)  # type: ignore
-    ) = Field(default=None)
-    read_password: SecretStr | None = Field(default=None, min_length=8, max_length=64)  # type: ignore
-    read_database: None | (
-        constr(strip_whitespace=True, min_length=2, max_length=128)  # type: ignore
-    ) = Field(default=None)
+    read_host: str | None = Field(default=None, min_length=2, max_length=128)
+    read_port: int | None = Field(default=None, ge=100, le=65535)
+    read_username: str | None = Field(default=None, min_length=2, max_length=32)
+    read_password: SecretStr | None = Field(default=None, min_length=8, max_length=64)
+    read_database: str | None = Field(default=None, min_length=2, max_length=128)
     read_dsn_url: SecretStr | None = Field(default=None)
 
-    connect_args: dict[str, Any] | None = Field(default=None)
-    prefix: constr(strip_whitespace=True) = Field(..., max_length=16)  # type: ignore
-    max_try_connect: int = Field(..., ge=1, le=100)
-    retry_after: int = Field(..., ge=1, le=600)
-    echo_sql: bool | constr(strip_whitespace=True, pattern=r"^(debug)$") = Field(...)  # type: ignore
-    echo_pool: bool | constr(strip_whitespace=True, pattern=r"^(debug)$") = Field(  # type: ignore
-        ...
-    )
-    pool_size: int = Field(..., ge=0, le=1000)  # 0 means no limit
+    connect_args: dict[str, Any] | None = Field(default={"sslmode": "prefer"})
+    prefix: str = Field(default="fot_", max_length=16)
+    max_try_connect: int = Field(default=3, ge=1, le=100)
+    retry_after: int = Field(default=4, ge=1, le=600)
+    echo_sql: bool | constr(strip_whitespace=True, pattern=r"^(debug)$") = Field(default=False)  # type: ignore
+    echo_pool: bool | constr(strip_whitespace=True, pattern=r"^(debug)$") = Field(default=False)  # type: ignore
+    pool_size: int = Field(default=10, ge=0, le=1000)  # 0 means no limit
     max_overflow: int = Field(
-        ..., ge=0, le=1000
+        default=10, ge=0, le=1000
     )  # pool_size + max_overflow = max number of pools allowed
-    pool_recycle: int = Field(..., ge=-1, le=86_400)  # 3 hours, -1 means no timeout
-    pool_timeout: int = Field(..., ge=0, le=3600)  # 30 seconds
-    select_limit: int = Field(..., ge=1, le=100_000)
-    select_max_limit: int = Field(..., ge=1, le=10_000_000)
-    select_is_desc: bool = Field(...)
+    pool_recycle: int = Field(
+        default=10800, ge=-1, le=86_400
+    )  # 3 hours, -1 means no timeout
+    pool_timeout: int = Field(default=30, ge=0, le=3600)  # 30 seconds
+    select_limit: int = Field(default=100, ge=1, le=100_000)
+    select_max_limit: int = Field(default=100000, ge=1, le=10_000_000)
+    select_is_desc: bool = Field(default=True)
 
     model_config = SettingsConfigDict(env_prefix=ENV_PREFIX_DB)
 
