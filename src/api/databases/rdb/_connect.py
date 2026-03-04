@@ -15,7 +15,7 @@ from sqlalchemy.pool import AsyncAdaptedQueuePool, QueuePool, SingletonThreadPoo
 from api.config import config
 
 
-## Async
+# Async
 @validate_call
 def make_async_engine(dsn_url: AnyUrl, **kwargs) -> AsyncEngine:
     """Create an async engine from a database connection string.
@@ -94,7 +94,7 @@ def create_async_session_maker(
     return _AsyncSession
 
 
-## Sync
+# Sync
 @validate_call
 def make_engine(dsn_url: AnyUrl, **kwargs) -> Engine:
     """Create an engine from a database connection string.

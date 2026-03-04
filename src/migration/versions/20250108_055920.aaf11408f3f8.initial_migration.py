@@ -101,12 +101,12 @@ def schema_upgrades() -> None:
     )
     # ### end Alembic commands ###
 
-    ## Functions
+    # Functions
     functions.create_fn_generate_pk()
     functions.create_fn_updated_at()
     functions.create_fn_stat_count(table_name="fot_table_stat")
 
-    ## Triggers
+    # Triggers
     _stat_table_names = [
         "fot_task",
     ]
@@ -128,7 +128,7 @@ def schema_downgrades() -> None:
     op.drop_table("fot_table_stat")
     # ### end Alembic commands ###
 
-    ## Drop functions
+    # Drop functions
     functions.drop_fn_all()
 
     return

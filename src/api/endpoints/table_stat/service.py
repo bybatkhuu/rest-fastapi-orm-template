@@ -3,7 +3,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from potato_util.constants import WarnEnum
 
-from api.endpoints.table_stat.model import TableStatORM
 from api.logger import async_log_mode
 
 from .model import TableStatORM

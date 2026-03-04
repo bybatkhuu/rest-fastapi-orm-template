@@ -12,13 +12,13 @@ from api.logger import logger
 
 def register_orms() -> None:
     # Add all your ORM models here...
-    from api.endpoints.table_stat.model import TableStatORM
-    from api.endpoints.task.model import TaskORM
+    from api.endpoints.table_stat.model import TableStatORM  # noqa: F401
+    from api.endpoints.task.model import TaskORM  # noqa: F401
 
     return
 
 
-## Async
+# Async
 @validate_call(config={"arbitrary_types_allowed": True})
 async def async_create_db(
     async_engine: AsyncEngine, warn_mode: WarnEnum = WarnEnum.ERROR
@@ -84,7 +84,7 @@ async def async_create_structure(async_engine: AsyncEngine) -> None:
     logger.success(f"Successfully initialized '{_db_name}' database structure.")
 
 
-## Sync
+# Sync
 @validate_call(config={"arbitrary_types_allowed": True})
 def create_db(engine: Engine, warn_mode: WarnEnum = WarnEnum.ERROR) -> bool:
     """Create database if it doesn't exist.

@@ -37,7 +37,8 @@ class ReadMixin(BaseMixin):
             where           (list[dict[str, Any]] |
                                      dict[str, Any], required): List of filter conditions.
             offset          (int                   , optional): Number of objects to skip. Defaults to 0.
-            limit           (int                   , optional): Number of objects to limit. Defaults to `config.db.select_limit`.
+            limit           (int                   , optional): Number of objects to limit.
+                                                                    Defaults to `config.db.select_limit`.
             order_by        (list[str] | str | None, optional): List of order by columns. Defaults to None.
             is_desc         (bool                  , optional): Is sort descending or ascending. Defaults to True.
             joins           (list[str] | None      , optional): List of joinable relationships. Defaults to None.

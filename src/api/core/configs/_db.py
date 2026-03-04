@@ -39,8 +39,12 @@ class DbConfig(BaseConfig):
     prefix: str = Field(default=f"{ENV_PREFIX.lower()}", max_length=16)
     max_try_connect: int = Field(default=3, ge=1, le=100)
     retry_after: int = Field(default=4, ge=1, le=600)
-    echo_sql: bool | constr(strip_whitespace=True, pattern=r"^(debug)$") = Field(default=False)  # type: ignore
-    echo_pool: bool | constr(strip_whitespace=True, pattern=r"^(debug)$") = Field(default=False)  # type: ignore
+    echo_sql: bool | constr(strip_whitespace=True, pattern=r"^(debug)$") = Field(  # type: ignore # noqa: F722
+        default=False
+    )
+    echo_pool: bool | constr(strip_whitespace=True, pattern=r"^(debug)$") = Field(  # type: ignore # noqa: F722
+        default=False
+    )
     pool_size: int = Field(default=10, ge=0, le=1000)  # 0 means no limit
     max_overflow: int = Field(
         default=10, ge=0, le=1000

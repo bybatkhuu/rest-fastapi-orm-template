@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import (
 from api.logger import logger
 
 
-## Async
+# Async
 @validate_call(config={"arbitrary_types_allowed": True})
 async def async_close_db(
     sessions: list[scoped_session | async_scoped_session],
@@ -23,7 +23,7 @@ async def async_close_db(
         engines  (list[Engine | AsyncEngine]                 , required): List of SQLAlchemy engines.
     """
 
-    logger.info(f"Closing all database connections...")
+    logger.info("Closing all database connections...")
     try:
         close_all_sessions()
         await async_close_all_sessions()
@@ -45,11 +45,11 @@ async def async_close_db(
         logger.exception("Failed to close database connections!")
         raise SystemExit(1)
 
-    logger.success(f"Successfully closed all database connections.")
+    logger.success("Successfully closed all database connections.")
     return
 
 
-## Sync
+# Sync
 @validate_call(config={"arbitrary_types_allowed": True})
 def close_db(sessions: list[scoped_session], engines: list[Engine]) -> None:
     """Close all database sessions (connections) and dispose all engines.
@@ -59,7 +59,7 @@ def close_db(sessions: list[scoped_session], engines: list[Engine]) -> None:
         engines  (list[Engine]        , required): List of SQLAlchemy engines.
     """
 
-    logger.info(f"Closing all database connections...")
+    logger.info("Closing all database connections...")
     try:
         close_all_sessions()
         # for _session in sessions:
@@ -73,7 +73,7 @@ def close_db(sessions: list[scoped_session], engines: list[Engine]) -> None:
         logger.exception("Failed to close database connections!")
         raise SystemExit(1)
 
-    logger.success(f"Successfully closed all database connections.")
+    logger.success("Successfully closed all database connections.")
     return
 
 

@@ -13,7 +13,7 @@ from api.logger import logger
 from ._create import async_create_db, create_db
 
 
-## Async
+# Async
 @validate_call(config={"arbitrary_types_allowed": True})
 async def async_is_db_connectable(async_engine: AsyncEngine) -> bool:
     """Check if the database is connectable.
@@ -73,7 +73,8 @@ async def async_check_db(async_engine: AsyncEngine, is_write_db: bool = True) ->
                     raise SystemExit(2)
 
             logger.warning(
-                f"Unable to connect '{_db_name}' {_tmp_str}database {_i + 1} time(s), retrying in {config.db.retry_after} second(s)..."
+                f"Unable to connect '{_db_name}' {_tmp_str}database {_i + 1} time(s), "
+                f"retrying in {config.db.retry_after} second(s)..."
             )
             await asyncio.sleep(config.db.retry_after)
 
@@ -81,7 +82,7 @@ async def async_check_db(async_engine: AsyncEngine, is_write_db: bool = True) ->
     return _is_done
 
 
-## Sync
+# Sync
 @validate_call(config={"arbitrary_types_allowed": True})
 def is_db_connectable(engine: Engine) -> bool:
     """Check if the database is connectable.
@@ -141,7 +142,8 @@ def check_db(engine: Engine, is_write_db: bool = True) -> bool:
                     raise SystemExit(2)
 
             logger.warning(
-                f"Unable to connect '{_db_name}' {_tmp_str}database {_i + 1} time(s), retrying in {config.db.retry_after} second(s)..."
+                f"Unable to connect '{_db_name}' {_tmp_str}database {_i + 1} time(s), "
+                f"retrying in {config.db.retry_after} second(s)..."
             )
             time.sleep(config.db.retry_after)
 
