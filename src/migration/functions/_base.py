@@ -72,7 +72,7 @@ def create_fn_stat_count(table_name: str) -> None:
             RETURN NULL;
         END;
         $BODY$ LANGUAGE plpgsql;
-        """)
+        """)  # nosec B608
 
     op.execute(f"""
         CREATE OR REPLACE FUNCTION fn_tr__truncate_stat_count()
@@ -85,7 +85,7 @@ def create_fn_stat_count(table_name: str) -> None:
             RETURN NULL;
         END;
         $BODY$ LANGUAGE plpgsql;
-        """)
+        """)  # nosec B608
 
     return
 

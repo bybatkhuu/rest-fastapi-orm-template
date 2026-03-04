@@ -30,7 +30,7 @@ async def async_is_db_connectable(async_engine: AsyncEngine) -> bool:
         async with async_engine.connect() as _connection:
             _result: Result = await _connection.execute(text("SELECT 1"))
             _is_connectable = bool(_result.scalar())
-    except Exception:
+    except Exception:  # nosec B110
         pass
     finally:
         await async_engine.dispose()
@@ -99,7 +99,7 @@ def is_db_connectable(engine: Engine) -> bool:
         with engine.connect() as _connection:
             _result: Result = _connection.execute(text("SELECT 1"))
             _is_connectable = bool(_result.scalar())
-    except Exception:
+    except Exception:  # nosec B110
         pass
     finally:
         engine.dispose()

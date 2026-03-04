@@ -86,7 +86,7 @@ class FrozenDbConfig(DbConfig):
                 )
 
             if ("read_dsn_url" in data) and (not data["read_dsn_url"]):
-                _read_password = ""
+                _read_password = ""  # nosec B105
                 if data["read_password"]:
                     _read_password = data["read_password"]
                     if isinstance(_read_password, SecretStr):
