@@ -45,6 +45,10 @@ def run_migrations_offline() -> None:
 
     # url = config.get_main_option("sqlalchemy.url")
 
+    assert (
+        api_config.db.dsn_url is not None
+    ), "Database DSN URL must be provided in the configuration!"
+
     url = api_config.db.dsn_url.get_secret_value()
     context.configure(
         url=url,
@@ -74,7 +78,7 @@ def run_migrations_online() -> None:
     # )
 
     _engine = make_engine(
-        dsn_url=api_config.db.dsn_url.get_secret_value(), poolclass=pool.NullPool
+        dsn_url=api_config.db.dsn_url.get_secret_value(), poolclass=pool.NullPool  # type: ignore
     )
     check_db(engine=_engine)
     with _engine.connect() as connection:
