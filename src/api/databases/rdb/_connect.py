@@ -62,8 +62,8 @@ def make_async_engine(dsn_url: AnyUrl, **kwargs) -> AsyncEngine:
     ) and ("pool_size" not in kwargs):
         kwargs["pool_size"] = config.db.pool_size
 
-    dsn_url = str(dsn_url)
-    _async_engine = create_async_engine(url=dsn_url, **kwargs)
+    _dsn_url = str(dsn_url)
+    _async_engine = create_async_engine(url=_dsn_url, **kwargs)
     return _async_engine
 
 
@@ -141,8 +141,8 @@ def make_engine(dsn_url: AnyUrl, **kwargs) -> Engine:
     ) and ("pool_size" not in kwargs):
         kwargs["pool_size"] = config.db.pool_size
 
-    dsn_url = str(dsn_url)
-    _engine = create_engine(url=dsn_url, **kwargs)
+    _dsn_url = str(dsn_url)
+    _engine = create_engine(url=_dsn_url, **kwargs)
     return _engine
 
 
