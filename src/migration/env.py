@@ -40,7 +40,6 @@ def run_migrations_offline() -> None:
 
     Calls to context.execute() here emit the given string to the
     script output.
-
     """
 
     # url = config.get_main_option("sqlalchemy.url")
@@ -49,9 +48,9 @@ def run_migrations_offline() -> None:
         api_config.db.dsn_url is not None
     ), "Database DSN URL must be provided in the configuration!"
 
-    url = api_config.db.dsn_url.get_secret_value()
+    _url = api_config.db.dsn_url.get_secret_value()
     context.configure(
-        url=url,
+        url=_url,
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
@@ -68,7 +67,6 @@ def run_migrations_online() -> None:
 
     In this scenario we need to create an Engine
     and associate a connection with the context.
-
     """
 
     # connectable = engine_from_config(
@@ -76,6 +74,10 @@ def run_migrations_online() -> None:
     #     prefix="sqlalchemy.",
     #     poolclass=pool.NullPool,
     # )
+
+    assert (
+        api_config.db.dsn_url is not None
+    ), "Database DSN URL must be provided in the configuration!"
 
     _engine = make_engine(
         dsn_url=api_config.db.dsn_url.get_secret_value(), poolclass=pool.NullPool  # type: ignore
