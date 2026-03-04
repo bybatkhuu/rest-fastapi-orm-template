@@ -297,7 +297,7 @@ DEBUG=false
 
 
 ## --- DB configs --- ##
-FOT_DB_HOST=localhost
+FOT_DB_HOST=localhost # For local docker-compose: db
 FOT_DB_PORT=5432
 FOT_DB_USERNAME=fot_admin
 FOT_DB_PASSWORD="FOT_DB_PASSWORD123" # !!! CHANGE THIS TO RANDOM PASSWORD !!! # pragma: allowlist secret
@@ -324,6 +324,12 @@ FOT_API_PORT=8000
 # FOT_API_DOCS_OPENAPI_URL="{api_prefix}/openapi.json"
 # FOT_API_DOCS_DOCS_URL="{api_prefix}/docs"
 # FOT_API_DOCS_REDOC_URL="{api_prefix}/redoc"
+
+
+
+## -- Extra -- ##
+# FOT_DB_ECHO_SQL=false
+# FOT_DB_ECHO_POOL=false
 ```
 
 ---
