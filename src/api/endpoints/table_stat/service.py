@@ -1,5 +1,3 @@
-from typing import Union
-
 from pydantic import validate_call
 from sqlalchemy.ext.asyncio import AsyncSession
 

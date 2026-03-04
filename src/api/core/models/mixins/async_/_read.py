@@ -34,24 +34,25 @@ class AsyncReadMixin(BaseMixin):
         """Select ORM objects from database by where filter conditions.
 
         Args:
-            async_session   (AsyncSession               , required): SQLAlchemy async_session for database connection.
-            where           (Union[List[Dict[str, Any]],
-                                         Dict[str, Any]], required): List of filter conditions.
-            offset          (int                        , optional): Number of objects to skip. Defaults to 0.
-            limit           (int                        , optional): Number of objects to limit. Defaults to `config.db.select_limit`.
-            order_by        (Union[List[str], str, None], optional): List of order by columns. Defaults to None.
-            is_desc         (bool                       , optional): Is sort descending or ascending. Defaults to True.
-            joins           (Optional[List[str]]        , optional): List of joinable relationships. Defaults to None.
-            disable_limit   (bool                       , optional): Disable select limit. Defaults to False.
-            allow_no_result (bool                       , optional): Allow no result. Defaults to True.
-            warn_mode       (WarnEnum                   , optional): Warning mode. Defaults to `WarnEnum.DEBUG`.
+            async_session   (AsyncSession          , required): SQLAlchemy async_session for database connection.
+            where           (list[dict[str, Any]] |
+                                     dict[str, Any], required): List of filter conditions.
+            offset          (int                   , optional): Number of objects to skip. Defaults to 0.
+            limit           (int                   , optional): Number of objects to limit.
+                                                                    Defaults to `config.db.select_limit`.
+            order_by        (list[str] | str | None, optional): List of order by columns. Defaults to None.
+            is_desc         (bool                  , optional): Is sort descending or ascending. Defaults to True.
+            joins           (list[str] | None      , optional): List of joinable relationships. Defaults to None.
+            disable_limit   (bool                  , optional): Disable select limit. Defaults to False.
+            allow_no_result (bool                  , optional): Allow no result. Defaults to True.
+            warn_mode       (WarnEnum              , optional): Warning mode. Defaults to `WarnEnum.DEBUG`.
 
         Raises:
             NoResultFound: If no result found and `allow_no_result` is False.
             Exception    : If failed to get ORM objects from database by where filter conditions.
 
         Returns:
-            List[DeclarativeBase]: List of ORM objects.
+            list[DeclarativeBase]: List of ORM objects.
         """
 
         _orm_objects: list[cls] = []
@@ -103,20 +104,21 @@ class AsyncReadMixin(BaseMixin):
         """Select ORM objects from database.
 
         Args:
-            async_session   (AsyncSession       , required): SQLAlchemy async_session for database connection.
-            offset          (int                , optional): Number of objects to skip. Defaults to 0.
-            limit           (int                , optional): Number of objects to limit. Defaults to `config.db.select_limit`.
-            is_desc         (bool               , optional): Is sort descending or ascending. Defaults to True.
-            joins           (Optional[List[str]], optional): List of joinable relationships. Defaults to None.
-            disable_limit   (bool               , optional): Disable select limit. Defaults to False.
-            allow_no_result (bool               , optional): Allow no result. Defaults to True.
-            warn_mode       (WarnEnum           , optional): Warning mode. Defaults to `WarnEnum.DEBUG`.
+            async_session   (AsyncSession    , required): SQLAlchemy async_session for database connection.
+            offset          (int             , optional): Number of objects to skip. Defaults to 0.
+            limit           (int             , optional): Number of objects to limit.
+                                                            Defaults to `config.db.select_limit`.
+            is_desc         (bool            , optional): Is sort descending or ascending. Defaults to True.
+            joins           (list[str] | None, optional): List of joinable relationships. Defaults to None.
+            disable_limit   (bool            , optional): Disable select limit. Defaults to False.
+            allow_no_result (bool            , optional): Allow no result. Defaults to True.
+            warn_mode       (WarnEnum        , optional): Warning mode. Defaults to `WarnEnum.DEBUG`.
 
         Raises:
             Exception: Any exception from `async_select_by_where()`.
 
         Returns:
-            List[DeclarativeBase]: List of ORM objects.
+            list[DeclarativeBase]: List of ORM objects.
         """
 
         try:
@@ -164,7 +166,7 @@ class AsyncReadMixin(BaseMixin):
             Exception    : If failed to get ORM object from database by ID.
 
         Returns:
-            Union[DeclarativeBase, None]: ORM object or None.
+            DeclarativeBase | None: ORM object or None.
         """
 
         _orm_object: cls | None = None
@@ -201,19 +203,19 @@ class AsyncReadMixin(BaseMixin):
         """Get ORM object from database by where filter conditions.
 
         Args:
-            async_session   (AsyncSession               , required): SQLAlchemy async_session for database connection.
-            where           (Union[List[Dict[str, Any]],
-                                   Dict[str, Any]]      , required): List of filter conditions. Defaults to None.
-            joins           (Optional[List[str]]        , optional): List of joinable relationships. Defaults to None.
-            allow_no_result (bool                       , optional): Allow no result. Defaults to True.
-            warn_mode       (WarnEnum                   , optional): Warning mode. Defaults to `WarnEnum.DEBUG`.
+            async_session   (AsyncSession          , required): SQLAlchemy async_session for database connection.
+            where           (list[dict[str, Any]] |
+                                     dict[str, Any], required): List of filter conditions. Defaults to None.
+            joins           (list[str] | None      , optional): List of joinable relationships. Defaults to None.
+            allow_no_result (bool                  , optional): Allow no result. Defaults to True.
+            warn_mode       (WarnEnum              , optional): Warning mode. Defaults to `WarnEnum.DEBUG`.
 
         Raises:
             NoResultFound: If no result found and `allow_no_result` is False.
             Exception    : Any exception from `async_select_by_where()`.
 
         Returns:
-            Union[DeclarativeBase, None]: ORM object or None.
+            DeclarativeBase | None: ORM object or None.
         """
 
         _orm_object: cls | None = None
@@ -254,7 +256,7 @@ class AsyncReadMixin(BaseMixin):
 
         Args:
             async_session (AsyncSession, required): SQLAlchemy async_session for database connection.
-            ids           (List[str]   , required): List of IDs.
+            ids           (list[str]   , required): List of IDs.
             warn_mode     (WarnEnum    , optional): Warning mode. Defaults to `WarnEnum.DEBUG`.
 
         Raises:
@@ -263,7 +265,7 @@ class AsyncReadMixin(BaseMixin):
             Exception      : If failed to get ORM objects from database by IDs.
 
         Returns:
-            List[DeclarativeBase]: List of ORM objects.
+            list[DeclarativeBase]: List of ORM objects.
         """
 
         if not ids:
@@ -381,10 +383,10 @@ class AsyncReadMixin(BaseMixin):
         """Count ORM objects in database by filter conditions.
 
         Args:
-            async_session (AsyncSession              , required): SQLAlchemy async_session for database connection.
-            where         (Union[List[Dict[str, Any]],
-                                      Dict[str, Any]], required): List of filter conditions.
-            warn_mode     (WarnEnum                  , optional): Warning mode. Defaults to `WarnEnum.DEBUG`.
+            async_session (AsyncSession          , required): SQLAlchemy async_session for database connection.
+            where         (list[dict[str, Any]] |
+                                   dict[str, Any], required): List of filter conditions.
+            warn_mode     (WarnEnum              , optional): Warning mode. Defaults to `WarnEnum.DEBUG`.
 
         Raises:
             Exception: If failed to count ORM objects in database by filter conditions.

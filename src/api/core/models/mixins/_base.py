@@ -121,11 +121,11 @@ class BaseMixin(TimestampMixin, IdStrMixin):
         """Convert ORM object to dictionary.
 
         Args:
-            excludes       (Optional[List[str]], optional): List of attributes to exclude. Defaults to None.
-            load_relations (Optional[List[str]], optional): List of relationships to include. Defaults to None.
+            excludes       (list[str] | None, optional): List of attributes to exclude. Defaults to None.
+            load_relations (list[str] | None, optional): List of relationships to include. Defaults to None.
 
         Returns:
-            Dict[str, Any]: Dictionary of ORM object.
+            dict[str, Any]: Dictionary of ORM object.
         """
 
         _dict = {}
@@ -162,8 +162,8 @@ class BaseMixin(TimestampMixin, IdStrMixin):
         """Convert ORM object to JSON string.
 
         Args:
-            excludes       (Optional[List[str]], optional): List of attributes to exclude. Defaults to None.
-            load_relations (Optional[List[str]], optional): List of relationships to include. Defaults to None.
+            excludes       (list[str] | None, optional): List of attributes to exclude. Defaults to None.
+            load_relations (list[str] | None, optional): List of relationships to include. Defaults to None.
 
         Returns:
             str: JSON string of ORM object.
@@ -187,12 +187,12 @@ class BaseMixin(TimestampMixin, IdStrMixin):
         """Convert list of ORM objects to list of dictionaries.
 
         Args:
-            orm_objects    (List[DeclarativeBase], required): List of ORM objects.
-            excludes       (Optional[List[str]]  , optional): List of attributes to exclude. Defaults to None.
-            load_relations (Optional[List[str]]  , optional): List of relationships to include. Defaults to None.
+            orm_objects    (list[DeclarativeBase], required): List of ORM objects.
+            excludes       (list[str] | None, optional): List of attributes to exclude. Defaults to None.
+            load_relations (list[str] | None, optional): List of relationships to include. Defaults to None.
 
         Returns:
-            List[Dict[str, Any]]: List of dictionaries from ORM objects.
+            list[dict[str, Any]]: List of dictionaries from ORM objects.
         """
 
         _dict_list = []
@@ -239,15 +239,14 @@ class BaseMixin(TimestampMixin, IdStrMixin):
         """Build SQLAlchemy SQL statement with `where` filter conditions.
 
         Args:
-            stmt  (Union[Select, Insert, Update, Delete], required): SQLAlchemy SQL statement.
-            where (Union[List[Dict[str, Any]],
-                              Dict[str, Any]]           , required): List of filter conditions
+            stmt  (Select | Insert | Update | Delete    , required): SQLAlchemy SQL statement.
+            where (list[dict[str, Any]] | dict[str, Any], required): List of filter conditions
 
         Raises:
             ValueError: If `column` or `value` key doesn't exist in `where` filter.
 
         Returns:
-            Union[Select, Insert, Update, Delete]: Built SQLAlchemy SQL statement.
+            Select | Insert | Update | Delete: Built SQLAlchemy SQL statement.
         """
 
         if isinstance(where, dict):
@@ -310,13 +309,13 @@ class BaseMixin(TimestampMixin, IdStrMixin):
         """Build SQLAlchemy select statement for ORM object.
 
         Args:
-            where          (Union[List[Dict[str, Any]],
-                                  Dict[str, Any], None], optional): List of filter conditions. Defaults to None.
+            where          (list[dict[str, Any]] |
+                                  dict[str, Any] | None, optional): List of filter conditions. Defaults to None.
             offset         (int                        , optional): Offset number. Defaults to 0.
             limit          (int                        , optional): Limit number. Defaults to `config.db.select_limit`.
-            order_by       (Union[List[str], str, None], optional): List of order by columns. Defaults to None.
+            order_by       (list[str] | str | None     , optional): List of order by columns. Defaults to None.
             is_desc        (bool                       , optional): Is sort descending or ascending. Defaults to True.
-            joins          (Optional[List[str]]        , optional): List of joinable relationships. Defaults to None.
+            joins          (list[str] | None           , optional): List of joinable relationships. Defaults to None.
             disable_limit  (bool                       , optional): Disable select limit. Defaults to False.
 
         Returns:

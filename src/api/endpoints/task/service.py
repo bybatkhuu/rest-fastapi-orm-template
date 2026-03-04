@@ -36,7 +36,7 @@ async def async_get_list(
         **kwargs      (dict        , optional): Column and value as key-value pair for filtering.
 
     Returns:
-        Tuple[List[TaskORM], int]: List of tasks and total count as tuple.
+        tuple[list[TaskORM], int]: List of tasks and total count as tuple.
     """
 
     await async_log_mode(

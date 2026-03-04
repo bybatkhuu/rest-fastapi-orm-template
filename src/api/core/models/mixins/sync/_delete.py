@@ -154,7 +154,7 @@ class DeleteMixin(ReadMixin):
 
         Args:
             session     (Session  , required): SQLAlchemy session for database connection.
-            ids         (List[str], required): List of IDs.
+            ids         (list[str], required): List of IDs.
             auto_commit (bool     , optional): Auto commit. Defaults to False.
             warn_mode   (WarnEnum , optional): Warning mode. Defaults to `WarnEnum.DEBUG`.
 
@@ -220,7 +220,7 @@ class DeleteMixin(ReadMixin):
 
         Args:
             session     (Session              , required): SQLAlchemy
-            objects     (List[DeclarativeBase], required): List of ORM objects.
+            objects     (list[DeclarativeBase], required): List of ORM objects.
             auto_commit (bool                 , optional): Auto commit. Defaults to False.
             warn_mode   (WarnEnum             , optional): Warning mode. Defaults to `WarnEnum.DEBUG`.
 
@@ -278,13 +278,13 @@ class DeleteMixin(ReadMixin):
         """Delete ORM objects from database by filter conditions.
 
         Args:
-            session         (Session                    , required): SQLAlchemy session for database connection.
-            where           (Union[List[Dict[str, Any]],
-                                   Dict[str, Any]]      , required): List of filter conditions.
-            orm_way         (bool                       , optional): Use ORM way to delete objects. Defaults to False.
-            auto_commit     (bool                       , optional): Auto commit. Defaults to False.
-            allow_no_result (bool                       , optional): Allow no result found. Defaults to False.
-            warn_mode       (WarnEnum                   , optional): Warning mode. Defaults to `WarnEnum.DEBUG`.
+            session         (Session               , required): SQLAlchemy session for database connection.
+            where           (list[dict[str, Any]] |
+                                     dict[str, Any], required): List of filter conditions.
+            orm_way         (bool                  , optional): Use ORM way to delete objects. Defaults to False.
+            auto_commit     (bool                  , optional): Auto commit. Defaults to False.
+            allow_no_result (bool                  , optional): Allow no result found. Defaults to False.
+            warn_mode       (WarnEnum              , optional): Warning mode. Defaults to `WarnEnum.DEBUG`.
 
         Raises:
             Exception: If failed to delete ORM objects from database by filter conditions.

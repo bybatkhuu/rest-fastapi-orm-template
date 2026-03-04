@@ -19,8 +19,8 @@ async def async_close_db(
     """Close all database sessions (connections) and dispose all engines.
 
     Args:
-        sessions (List[Union[scoped_session, async_scoped_session]], required): List of SQLAlchemy sessions.
-        engines  (List[Union[Engine, AsyncEngine]]                 , required): List of SQLAlchemy engines.
+        sessions (list[scoped_session | async_scoped_session], required): List of SQLAlchemy sessions.
+        engines  (list[Engine | AsyncEngine]                 , required): List of SQLAlchemy engines.
     """
 
     logger.info(f"Closing all database connections...")
@@ -55,8 +55,8 @@ def close_db(sessions: list[scoped_session], engines: list[Engine]) -> None:
     """Close all database sessions (connections) and dispose all engines.
 
     Args:
-        sessions (List[scoped_session], required): List of SQLAlchemy sessions.
-        engines  (List[Engine]        , required): List of SQLAlchemy engines.
+        sessions (list[scoped_session], required): List of SQLAlchemy sessions.
+        engines  (list[Engine]        , required): List of SQLAlchemy engines.
     """
 
     logger.info(f"Closing all database connections...")

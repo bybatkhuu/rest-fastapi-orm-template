@@ -55,7 +55,7 @@ class CreateMixin(UpdateMixin):
             returning   (bool          , optional): Return inserted ORM object from database. Defaults to True.
             auto_commit (bool          , optional): Auto commit. Defaults to False.
             warn_mode   (WarnEnum      , optional): Warning mode. Defaults to `WarnEnum.DEBUG`.
-            **kwargs    (Dict[str, Any], required): Dictionary of object data.
+            **kwargs    (dict[str, Any], required): Dictionary of object data.
 
         Raises:
             EmptyValueError     : If no data provided to insert.
@@ -150,7 +150,7 @@ class CreateMixin(UpdateMixin):
             session     (Session       , required): SQLAlchemy session for database connection.
             auto_commit (bool          , optional): Auto commit. Defaults to False.
             warn_mode   (WarnEnum      , optional): Warning mode. Defaults to `WarnEnum.DEBUG`.
-            **kwargs    (Dict[str, Any], optional): Dictionary of ORM object data.
+            **kwargs    (dict[str, Any], optional): Dictionary of ORM object data.
 
         Raises:
             NullConstraintError : If null constraint error occurred.
@@ -250,7 +250,7 @@ class CreateMixin(UpdateMixin):
             Exception           : If failed to upsert object into database.
 
         Returns:
-            Union[DeclarativeBase, None]: Upserted ORM object.
+            DeclarativeBase | None: Upserted ORM object.
         """
 
         if not kwargs:
@@ -357,7 +357,7 @@ class CreateMixin(UpdateMixin):
 
         Args:
             session     (Session             , required): SQLAlchemy session for database connection.
-            raw_data    (List[Dict[str, Any]], required): List of dictionary object data.
+            raw_data    (list[dict[str, Any]], required): List of dictionary object data.
             returning   (bool                , optional): Return inserted ORM objects from database. Defaults to True.
             auto_commit (bool                , optional): Auto commit. Defaults to False.
             warn_mode   (WarnEnum            , optional): Warning mode. Defaults to `WarnEnum.DEBUG`.
@@ -372,7 +372,7 @@ class CreateMixin(UpdateMixin):
             Exception           : If failed to bulk insert objects into database.
 
         Returns:
-            List[DeclarativeBase]: List of inserted ORM objects.
+            list[DeclarativeBase]: List of inserted ORM objects.
         """
 
         if not raw_data:

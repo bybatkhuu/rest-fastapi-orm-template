@@ -22,7 +22,7 @@ def make_async_engine(dsn_url: AnyUrl, **kwargs) -> AsyncEngine:
 
     Args:
         dsn_url  (AnyUrl        , required): Database connection string as Data Source Name (URL).
-        **kwargs (Dict[str, Any], optional): Additional keyword arguments.
+        **kwargs (dict[str, Any], optional): Additional keyword arguments.
 
     Returns:
         AsyncEngine: SQLAlchemy async engine for database.
@@ -75,7 +75,7 @@ def create_async_session_maker(
 
     Args:
         async_engine (AsyncEngine   , required): SQLAlchemy async engine for session.
-        **kwargs     (Dict[str, Any], optional): Additional keyword arguments.
+        **kwargs     (dict[str, Any], optional): Additional keyword arguments.
 
     Returns:
         async_scoped_session[AsyncSession]: SQLAlchemy async session maker.
@@ -101,7 +101,7 @@ def make_engine(dsn_url: AnyUrl, **kwargs) -> Engine:
 
     Args:
         dsn_url  (AnyUrl        , required): Database connection string as Data Source Name (URL).
-        **kwargs (Dict[str, Any], optional): Additional keyword arguments.
+        **kwargs (dict[str, Any], optional): Additional keyword arguments.
 
     Returns:
         Engine: SQLAlchemy engine for database.

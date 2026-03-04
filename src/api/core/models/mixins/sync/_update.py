@@ -44,7 +44,7 @@ class UpdateMixin(ReadMixin):
             session     (Session       , required): SQLAlchemy session for database connection.
             auto_commit (bool          , optional): Auto commit. Defaults to False.
             warn_mode   (WarnEnum      , optional): Warning mode. Defaults to `WarnEnum.DEBUG`.
-            **kwargs    (Dict[str, Any], optional): Dictionary of update data.
+            **kwargs    (dict[str, Any], optional): Dictionary of update data.
 
         Raises:
             NoResultFound       : If ORM object ID not found in database.
@@ -124,7 +124,7 @@ class UpdateMixin(ReadMixin):
             returning   (bool          , optional): Return updated ORM object. Defaults to True.
             auto_commit (bool          , optional): Auto commit. Defaults to False.
             warn_mode   (WarnEnum      , optional): Warning mode. Defaults to `WarnEnum.DEBUG`.
-            **kwargs    (Dict[str, Any], required): Dictionary of update data.
+            **kwargs    (dict[str, Any], required): Dictionary of update data.
 
         Raises:
             EmptyValueError     : If no data provided to update.
@@ -236,11 +236,11 @@ class UpdateMixin(ReadMixin):
 
         Args:
             session     (Session       , required): SQLAlchemy session for database connection.
-            ids         (List[str]     , required): List of IDs.
+            ids         (list[str]     , required): List of IDs.
             returning   (bool          , optional): Return updated ORM object. Defaults to True.
             auto_commit (bool          , optional): Auto commit. Defaults to False.
             warn_mode   (WarnEnum      , optional): Warning mode. Defaults to `WarnEnum.DEBUG`.
-            **kwargs    (Dict[str, Any], required): Dictionary of update data.
+            **kwargs    (dict[str, Any], required): Dictionary of update data.
 
         Raises:
             EmptyValueError     : If no IDs or data provided to update.
@@ -252,7 +252,7 @@ class UpdateMixin(ReadMixin):
             Exception           : If failed to update objects into database.
 
         Returns:
-            List[DeclarativeBase]: List of updated ORM objects.
+            list[DeclarativeBase]: List of updated ORM objects.
         """
 
         if not ids:
@@ -341,10 +341,10 @@ class UpdateMixin(ReadMixin):
 
         Args:
             session     (Session              , required): SQLAlchemy session for database connection.
-            orm_objects (List[DeclarativeBase], required): List of ORM objects.
+            orm_objects (list[DeclarativeBase], required): List of ORM objects.
             auto_commit (bool                 , optional): Auto commit. Defaults to False.
             warn_mode   (WarnEnum             , optional): Warning mode. Defaults to `WarnEnum.DEBUG`.
-            **kwargs    (Dict[str, Any]       , required): Dictionary of update data.
+            **kwargs    (dict[str, Any]       , required): Dictionary of update data.
 
         Raises:
             EmptyValueError     : If no ORM objects or data provided to update.
@@ -356,7 +356,7 @@ class UpdateMixin(ReadMixin):
             Exception           : If failed to update objects into database.
 
         Returns:
-            List[DeclarativeBase]: List of updated ORM objects.
+            list[DeclarativeBase]: List of updated ORM objects.
         """
 
         if not orm_objects:
@@ -427,15 +427,16 @@ class UpdateMixin(ReadMixin):
         """Update ORM objects into database by filter conditions.
 
         Args:
-            session         (Session                    , required): SQLAlchemy session for database connection.
-            where           (Union[List[Dict[str, Any]],
-                                   Dict[str, Any]]      , required): List of filter conditions.
-            orm_way         (bool                       , optional): Use ORM way to update object into database. Defaults to False.
-            returning       (bool                       , optional): Return updated ORM object. Defaults to False.
-            auto_commit     (bool                       , optional): Auto commit. Defaults to False.
-            allow_no_result (bool                       , optional): Allow no result. Defaults to True.
-            warn_mode       (WarnEnum                   , optional): Warning mode. Defaults to `WarnEnum.DEBUG`.
-            **kwargs        (Dict[str, Any]             , required): Dictionary of update data.
+            session         (Session               , required): SQLAlchemy session for database connection.
+            where           (list[dict[str, Any]] |
+                                     dict[str, Any], required): List of filter conditions.
+            orm_way         (bool                  , optional): Use ORM way to update object into database.
+                                                                    Defaults to False.
+            returning       (bool                  , optional): Return updated ORM object. Defaults to False.
+            auto_commit     (bool                  , optional): Auto commit. Defaults to False.
+            allow_no_result (bool                  , optional): Allow no result. Defaults to True.
+            warn_mode       (WarnEnum              , optional): Warning mode. Defaults to `WarnEnum.DEBUG`.
+            **kwargs        (dict[str, Any]        , required): Dictionary of update data.
 
         Raises:
             EmptyValueError     : If no data provided to update.
@@ -446,7 +447,7 @@ class UpdateMixin(ReadMixin):
             Exception           : If failed to update objects into database.
 
         Returns:
-            List[DeclarativeBase]: List of updated ORM objects.
+            list[DeclarativeBase]: List of updated ORM objects.
         """
 
         if not kwargs:
@@ -549,7 +550,7 @@ class UpdateMixin(ReadMixin):
             session     (Session       , required): SQLAlchemy session for database connection.
             auto_commit (bool          , optional): Auto commit. Defaults to False.
             warn_mode   (WarnEnum      , optional): Warning mode. Defaults to `WarnEnum.DEBUG`.
-            **kwargs    (Dict[str, Any], required): Dictionary of update data.
+            **kwargs    (dict[str, Any], required): Dictionary of update data.
 
         Raises:
             EmptyValueError     : If no data provided to update.
