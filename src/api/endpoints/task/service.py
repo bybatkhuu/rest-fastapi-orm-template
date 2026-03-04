@@ -1,3 +1,5 @@
+from typing import cast
+
 from pydantic import validate_call
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -48,12 +50,15 @@ async def async_get_list(
         for _key, _val in kwargs.items():
             _where.append({"column": _key, "value": _val})
 
-    _orm_tasks: list[TaskORM] = await TaskORM.async_select_by_where(
-        async_session=async_session,
-        where=_where,
-        offset=offset,
-        limit=limit,
-        is_desc=is_desc,
+    _orm_tasks = cast(
+        list[TaskORM],
+        await TaskORM.async_select_by_where(
+            async_session=async_session,
+            where=_where,
+            offset=offset,
+            limit=limit,
+            is_desc=is_desc,
+        ),
     )
 
     _all_count = 0
@@ -107,10 +112,13 @@ async def async_create(
 
     _task_orm: TaskORM
     try:
-        _task_orm: TaskORM = await TaskORM.async_insert(
-            async_session=async_session,
-            auto_commit=auto_commit,
-            **task_in.model_dump(),
+        _task_orm = cast(
+            TaskORM,
+            await TaskORM.async_insert(
+                async_session=async_session,
+                auto_commit=auto_commit,
+                **task_in.model_dump(),
+            ),
         )
 
         await async_log_mode(
@@ -157,7 +165,9 @@ async def async_get(
 
     _task_orm: TaskORM
     try:
-        _task_orm: TaskORM = await TaskORM.async_get(async_session=async_session, id=id)
+        _task_orm = cast(
+            TaskORM, await TaskORM.async_get(async_session=async_session, id=id)
+        )
 
         await async_log_mode(
             message=f"[{request_id}] - Successfully retrieved task with '{id}' ID.",
@@ -209,8 +219,11 @@ async def async_update(
 
     _task_orm: TaskORM
     try:
-        _task_orm: TaskORM = await TaskORM.async_update_by_id(
-            async_session=async_session, id=id, auto_commit=auto_commit, **kwargs
+        _task_orm = cast(
+            TaskORM,
+            await TaskORM.async_update_by_id(
+                async_session=async_session, id=id, auto_commit=auto_commit, **kwargs
+            ),
         )
 
         await async_log_mode(

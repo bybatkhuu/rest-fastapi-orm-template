@@ -1,3 +1,5 @@
+from typing import cast
+
 from pydantic import validate_call
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -32,8 +34,12 @@ async def async_get_row_count(
         warn_mode=warn_mode,
     )
 
-    _table_stat_orm: TableStatORM | None = await TableStatORM.async_get_by_where(
-        async_session=async_session, where={"column": "table_name", "value": table_name}
+    _table_stat_orm = cast(
+        TableStatORM | None,
+        await TableStatORM.async_get_by_where(
+            async_session=async_session,
+            where={"column": "table_name", "value": table_name},
+        ),
     )
 
     _row_scount = 0
