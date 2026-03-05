@@ -317,7 +317,7 @@ class AsyncDeleteMixin(AsyncReadMixin):
         else:
             try:
                 _stmt: Delete = delete(cls)
-                _stmt = cls._build_where_stmt(stmt=_stmt, where=where)
+                _stmt = cls._build_where(stmt=_stmt, where=where)
                 _result: Result = await async_session.execute(_stmt)
 
                 if auto_commit:

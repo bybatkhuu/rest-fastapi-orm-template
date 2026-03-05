@@ -312,7 +312,7 @@ class DeleteMixin(ReadMixin):
         else:
             try:
                 _stmt: Delete = delete(cls)
-                _stmt = cls._build_where_stmt(stmt=_stmt, where=where)
+                _stmt = cls._build_where(stmt=_stmt, where=where)
                 _result: Result = session.execute(_stmt)
 
                 if auto_commit:
