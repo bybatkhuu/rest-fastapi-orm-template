@@ -150,7 +150,10 @@ class DeleteMixin(ReadMixin):
                                 .replace(f"table '{config.db.prefix}", "'")
                             )
                         else:
-                            _message_detail = "Foreign key violation error occurred while deleting object from database!"
+                            _message_detail = (
+                                "Foreign key violation error occurred while deleting object from "
+                                "database!"
+                            )
 
                         raise ForeignKeyError(_message_detail)
 
@@ -393,7 +396,10 @@ class DeleteMixin(ReadMixin):
                                 .replace(f"table '{config.db.prefix}", "'")
                             )
                         else:
-                            _message_detail = "Foreign key violation error occurred while deleting objects from database!"
+                            _message_detail = (
+                                "Foreign key violation error occurred while deleting objects from "
+                                "database!"
+                            )
 
                         raise ForeignKeyError(_message_detail)
 

@@ -85,7 +85,7 @@ class UpdateMixin(ReadMixin):
                 if isinstance(_err_orig, NotNullViolation):
                     _err_orig = cast(NotNullViolation, _err_orig)
                     raise NullConstraintError(
-                        f"`{_err_orig.diag.column_name}` cannot be NULL."
+                        f"`{_err_orig.diag.column_name}` cannot be NULL!"
                     )
                 elif isinstance(_err_orig, UniqueViolation):
                     _err_orig = cast(UniqueViolation, _err_orig)
@@ -93,7 +93,7 @@ class UpdateMixin(ReadMixin):
                     if _message_detail is not None:
                         _message_detail = _message_detail.replace("Key ", "")
                     else:
-                        _message_detail = "Unique constraint violation."
+                        _message_detail = "Unique constraint violation!"
 
                     raise UniqueKeyError(_message_detail)
                 elif isinstance(_err_orig, ForeignKeyViolation):
@@ -106,7 +106,7 @@ class UpdateMixin(ReadMixin):
                             .replace(f"table '{config.db.prefix}", "'")
                         )
                     else:
-                        _message_detail = "Foreign key constraint violation."
+                        _message_detail = "Foreign key constraint violation!"
 
                     raise ForeignKeyError(_message_detail)
                 elif isinstance(_err_orig, CheckViolation):
@@ -115,7 +115,7 @@ class UpdateMixin(ReadMixin):
                     if _message_detail is not None:
                         _message_detail = _message_detail.replace("Key ", "")
                     else:
-                        _message_detail = "Check constraint violation."
+                        _message_detail = "Check constraint violation!"
 
                     raise CheckConstraintError(_message_detail)
 
@@ -229,7 +229,7 @@ class UpdateMixin(ReadMixin):
                     if isinstance(_err_orig, NotNullViolation):
                         _err_orig = cast(NotNullViolation, _err_orig)
                         raise NullConstraintError(
-                            f"`{_err_orig.diag.column_name}` cannot be NULL."
+                            f"`{_err_orig.diag.column_name}` cannot be NULL!"
                         )
                     elif isinstance(_err_orig, UniqueViolation):
                         _err_orig = cast(UniqueViolation, _err_orig)
@@ -237,7 +237,7 @@ class UpdateMixin(ReadMixin):
                         if _message_detail is not None:
                             _message_detail = _message_detail.replace("Key ", "")
                         else:
-                            _message_detail = "Unique constraint violation."
+                            _message_detail = "Unique constraint violation!"
 
                         raise UniqueKeyError(_message_detail)
                     elif isinstance(_err_orig, ForeignKeyViolation):
@@ -250,7 +250,7 @@ class UpdateMixin(ReadMixin):
                                 .replace(f"table '{config.db.prefix}", "'")
                             )
                         else:
-                            _message_detail = "Foreign key constraint violation."
+                            _message_detail = "Foreign key constraint violation!"
 
                         raise ForeignKeyError(_message_detail)
                     elif isinstance(_err_orig, CheckViolation):
@@ -259,7 +259,7 @@ class UpdateMixin(ReadMixin):
                         if _message_detail is not None:
                             _message_detail = _message_detail.replace("Key ", "")
                         else:
-                            _message_detail = "Check constraint violation."
+                            _message_detail = "Check constraint violation!"
 
                         raise CheckConstraintError(_message_detail)
 
@@ -359,7 +359,7 @@ class UpdateMixin(ReadMixin):
                 if isinstance(_err_orig, NotNullViolation):
                     _err_orig = cast(NotNullViolation, _err_orig)
                     raise NullConstraintError(
-                        f"`{_err_orig.diag.column_name}` cannot be NULL."
+                        f"`{_err_orig.diag.column_name}` cannot be NULL!"
                     )
                 elif isinstance(_err_orig, UniqueViolation):
                     _err_orig = cast(UniqueViolation, _err_orig)
@@ -367,7 +367,7 @@ class UpdateMixin(ReadMixin):
                     if _message_detail is not None:
                         _message_detail = _message_detail.replace("Key ", "")
                     else:
-                        _message_detail = "Unique constraint violation."
+                        _message_detail = "Unique constraint violation!"
 
                     raise UniqueKeyError(_message_detail)
                 elif isinstance(_err_orig, ForeignKeyViolation):
@@ -380,7 +380,7 @@ class UpdateMixin(ReadMixin):
                             .replace(f"table '{config.db.prefix}", "'")
                         )
                     else:
-                        _message_detail = "Foreign key constraint violation."
+                        _message_detail = "Foreign key constraint violation!"
 
                     raise ForeignKeyError(_message_detail)
                 elif isinstance(_err_orig, CheckViolation):
@@ -389,7 +389,7 @@ class UpdateMixin(ReadMixin):
                     if _message_detail is not None:
                         _message_detail = _message_detail.replace("Key ", "")
                     else:
-                        _message_detail = "Check constraint violation."
+                        _message_detail = "Check constraint violation!"
 
                     raise CheckConstraintError(_message_detail)
 
@@ -465,7 +465,7 @@ class UpdateMixin(ReadMixin):
                 if isinstance(_err_orig, NotNullViolation):
                     _err_orig = cast(NotNullViolation, _err_orig)
                     raise NullConstraintError(
-                        f"`{_err_orig.diag.column_name}` cannot be NULL."
+                        f"`{_err_orig.diag.column_name}` cannot be NULL!"
                     )
                 elif isinstance(_err_orig, UniqueViolation):
                     _err_orig = cast(UniqueViolation, _err_orig)
@@ -473,7 +473,7 @@ class UpdateMixin(ReadMixin):
                     if _message_detail is not None:
                         _message_detail = _message_detail.replace("Key ", "")
                     else:
-                        _message_detail = "Unique constraint violation."
+                        _message_detail = "Unique constraint violation!"
 
                     raise UniqueKeyError(_message_detail)
                 elif isinstance(_err_orig, ForeignKeyViolation):
@@ -486,7 +486,7 @@ class UpdateMixin(ReadMixin):
                             .replace(f"table '{config.db.prefix}", "'")
                         )
                     else:
-                        _message_detail = "Foreign key constraint violation."
+                        _message_detail = "Foreign key constraint violation!"
 
                     raise ForeignKeyError(_message_detail)
                 elif isinstance(_err_orig, CheckViolation):
@@ -495,7 +495,7 @@ class UpdateMixin(ReadMixin):
                     if _message_detail is not None:
                         _message_detail = _message_detail.replace("Key ", "")
                     else:
-                        _message_detail = "Check constraint violation."
+                        _message_detail = "Check constraint violation!"
 
                     raise CheckConstraintError(_message_detail)
 
@@ -606,7 +606,7 @@ class UpdateMixin(ReadMixin):
                     if isinstance(err.orig, NotNullViolation):
                         _err_orig = cast(NotNullViolation, _err_orig)
                         raise NullConstraintError(
-                            f"`{_err_orig.diag.column_name}` cannot be NULL."
+                            f"`{_err_orig.diag.column_name}` cannot be NULL!"
                         )
                     elif isinstance(_err_orig, UniqueViolation):
                         _err_orig = cast(UniqueViolation, _err_orig)
@@ -614,7 +614,7 @@ class UpdateMixin(ReadMixin):
                         if _message_detail is not None:
                             _message_detail = _message_detail.replace("Key ", "")
                         else:
-                            _message_detail = "Unique constraint violation."
+                            _message_detail = "Unique constraint violation!"
 
                         raise UniqueKeyError(_message_detail)
                     elif isinstance(_err_orig, ForeignKeyViolation):
@@ -627,7 +627,7 @@ class UpdateMixin(ReadMixin):
                                 .replace(f"table '{config.db.prefix}", "'")
                             )
                         else:
-                            _message_detail = "Foreign key constraint violation."
+                            _message_detail = "Foreign key constraint violation!"
 
                         raise ForeignKeyError(_message_detail)
                     elif isinstance(_err_orig, CheckViolation):
@@ -636,7 +636,7 @@ class UpdateMixin(ReadMixin):
                         if _message_detail is not None:
                             _message_detail = _message_detail.replace("Key ", "")
                         else:
-                            _message_detail = "Check constraint violation."
+                            _message_detail = "Check constraint violation!"
 
                         raise CheckConstraintError(_message_detail)
 
@@ -708,7 +708,7 @@ class UpdateMixin(ReadMixin):
                     _err_orig = cast(NotNullViolation, _err_orig)
 
                     raise NullConstraintError(
-                        f"`{_err_orig.diag.column_name}` cannot be NULL."
+                        f"`{_err_orig.diag.column_name}` cannot be NULL!"
                     )
                 elif isinstance(_err_orig, UniqueViolation):
                     _err_orig = cast(UniqueViolation, _err_orig)
@@ -716,7 +716,7 @@ class UpdateMixin(ReadMixin):
                     if _message_detail is not None:
                         _message_detail = _message_detail.replace("Key ", "")
                     else:
-                        _message_detail = "Unique constraint violation."
+                        _message_detail = "Unique constraint violation!"
 
                     raise UniqueKeyError(_message_detail)
                 elif isinstance(_err_orig, ForeignKeyViolation):
@@ -729,7 +729,7 @@ class UpdateMixin(ReadMixin):
                             .replace(f"table '{config.db.prefix}", "'")
                         )
                     else:
-                        _message_detail = "Foreign key constraint violation."
+                        _message_detail = "Foreign key constraint violation!"
 
                     raise ForeignKeyError(_message_detail)
                 elif isinstance(_err_orig, CheckViolation):
@@ -738,7 +738,7 @@ class UpdateMixin(ReadMixin):
                     if _message_detail is not None:
                         _message_detail = _message_detail.replace("Key ", "")
                     else:
-                        _message_detail = "Check constraint violation."
+                        _message_detail = "Check constraint violation!"
 
                     raise CheckConstraintError(_message_detail)
 

@@ -112,7 +112,7 @@ class CreateMixin(UpdateMixin):
                 if isinstance(_err_orig, NotNullViolation):
                     _err_orig = cast(NotNullViolation, _err_orig)
                     raise NullConstraintError(
-                        f"`{_err_orig.diag.column_name}` cannot be NULL."
+                        f"`{_err_orig.diag.column_name}` cannot be NULL!"
                     )
                 elif isinstance(_err_orig, UniqueViolation):
                     _err_orig = cast(UniqueViolation, _err_orig)
@@ -216,7 +216,7 @@ class CreateMixin(UpdateMixin):
                 if isinstance(_err_orig, NotNullViolation):
                     _err_orig = cast(NotNullViolation, _err_orig)
                     raise NullConstraintError(
-                        f"`{_err_orig.diag.column_name}` cannot be NULL."
+                        f"`{_err_orig.diag.column_name}` cannot be NULL!"
                     )
                 elif isinstance(_err_orig, UniqueViolation):
                     _err_orig = cast(UniqueViolation, _err_orig)
@@ -254,6 +254,7 @@ class CreateMixin(UpdateMixin):
                         _message_detail = "Check constraint violation occurred!"
 
                     raise CheckConstraintError(_message_detail)
+
             _message = f"Failed to save `{self.__class__.__name__}` object (self) '{self.id}' ID into database!"
             if warn_mode == WarnEnum.ALWAYS:
                 logger.error(_message)
@@ -367,7 +368,7 @@ class CreateMixin(UpdateMixin):
                     if isinstance(_err_orig, NotNullViolation):
                         _err_orig = cast(NotNullViolation, _err_orig)
                         raise NullConstraintError(
-                            f"`{_err_orig.diag.column_name}` cannot be NULL."
+                            f"`{_err_orig.diag.column_name}` cannot be NULL!"
                         )
                     elif isinstance(_err_orig, UniqueViolation):
                         _err_orig = cast(UniqueViolation, _err_orig)
@@ -476,7 +477,7 @@ class CreateMixin(UpdateMixin):
                 if isinstance(err.orig, NotNullViolation):
                     _err_orig = cast(NotNullViolation, _err_orig)
                     raise NullConstraintError(
-                        f"`{_err_orig.diag.column_name}` cannot be NULL."
+                        f"`{_err_orig.diag.column_name}` cannot be NULL!"
                     )
                 elif isinstance(_err_orig, UniqueViolation):
                     _err_orig = cast(UniqueViolation, _err_orig)

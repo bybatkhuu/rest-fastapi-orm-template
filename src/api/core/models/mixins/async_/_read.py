@@ -1,4 +1,10 @@
-from typing import Any
+import sys
+from typing import Any, cast
+
+if sys.version_info >= (3, 11):
+    from typing import Self
+else:
+    from typing_extensions import Self
 
 from pydantic import validate_call
 from sqlalchemy import Select, select, Result, func
@@ -30,7 +36,7 @@ class AsyncReadMixin(BaseMixin):
         disable_limit: bool = False,
         allow_no_result: bool = True,
         warn_mode: WarnEnum = WarnEnum.DEBUG,
-    ) -> list[DeclarativeBase]:
+    ) -> list[DeclarativeBase | Self]:
         """Select ORM objects from database by where filter conditions.
 
         Args:
@@ -52,10 +58,10 @@ class AsyncReadMixin(BaseMixin):
             Exception    : If failed to get ORM objects from database by where filter conditions.
 
         Returns:
-            list[DeclarativeBase]: List of ORM objects.
+            list[DeclarativeBase | Self]: List of ORM objects.
         """
 
-        _orm_objects: list[cls] = []
+        _orm_objects: list[DeclarativeBase | Self] = []
         try:
             _stmt: Select = cls._build_select(
                 where=where,
@@ -71,7 +77,7 @@ class AsyncReadMixin(BaseMixin):
             if joins:
                 _result = _result.unique()
 
-            _orm_objects: list[cls] = _result.scalars().all()
+            _orm_objects = cast(list[DeclarativeBase | Self], _result.scalars().all())
         except Exception:
             _message = f"Failed to get `{cls.__name__}` objects from database by filtering with '{where}'!"
             if warn_mode == WarnEnum.ALWAYS:
@@ -100,7 +106,7 @@ class AsyncReadMixin(BaseMixin):
         disable_limit: bool = False,
         allow_no_result: bool = True,
         warn_mode: WarnEnum = WarnEnum.DEBUG,
-    ) -> list[DeclarativeBase]:
+    ) -> list[DeclarativeBase | Self]:
         """Select ORM objects from database.
 
         Args:
@@ -118,11 +124,11 @@ class AsyncReadMixin(BaseMixin):
             Exception: Any exception from `async_select_by_where()`.
 
         Returns:
-            list[DeclarativeBase]: List of ORM objects.
+            list[DeclarativeBase | Self]: List of ORM objects.
         """
 
         try:
-            _orm_objects: list[cls] = await cls.async_select_by_where(
+            _orm_objects = await cls.async_select_by_where(
                 async_session=async_session,
                 where=[],
                 offset=offset,
@@ -152,7 +158,7 @@ class AsyncReadMixin(BaseMixin):
         id: str,
         allow_no_result: bool = False,
         warn_mode: WarnEnum = WarnEnum.DEBUG,
-    ) -> DeclarativeBase | None:
+    ) -> DeclarativeBase | Self | None:
         """Get ORM object from database by ID.
 
         Args:
@@ -169,9 +175,11 @@ class AsyncReadMixin(BaseMixin):
             DeclarativeBase | None: ORM object or None.
         """
 
-        _orm_object: cls | None = None
+        _orm_object: DeclarativeBase | Self | None = None
         try:
-            _orm_object: cls | None = await async_session.get(cls, id)
+            _orm_object = cast(
+                DeclarativeBase | Self | None, await async_session.get(cls, id)
+            )
         except Exception:
             _message = (
                 f"Failed to get `{cls.__name__}` object with '{id}' ID from database!"
@@ -199,7 +207,7 @@ class AsyncReadMixin(BaseMixin):
         joins: list[str] | None = None,
         allow_no_result: bool = True,
         warn_mode: WarnEnum = WarnEnum.DEBUG,
-    ) -> DeclarativeBase | None:
+    ) -> DeclarativeBase | Self | None:
         """Get ORM object from database by where filter conditions.
 
         Args:
@@ -215,18 +223,21 @@ class AsyncReadMixin(BaseMixin):
             Exception    : Any exception from `async_select_by_where()`.
 
         Returns:
-            DeclarativeBase | None: ORM object or None.
+            DeclarativeBase | Self | None: ORM object or None.
         """
 
-        _orm_object: cls | None = None
+        _orm_object: DeclarativeBase | Self | None = None
         try:
-            _orm_objects: list[cls] = await cls.async_select_by_where(
-                async_session=async_session,
-                where=where,
-                limit=1,
-                joins=joins,
-                allow_no_result=allow_no_result,
-                warn_mode=WarnEnum.IGNORE,
+            _orm_objects = cast(
+                list[DeclarativeBase | Self],
+                await cls.async_select_by_where(
+                    async_session=async_session,
+                    where=where,
+                    limit=1,
+                    joins=joins,
+                    allow_no_result=allow_no_result,
+                    warn_mode=WarnEnum.IGNORE,
+                ),
             )
         except NoResultFound:
             raise
@@ -240,7 +251,7 @@ class AsyncReadMixin(BaseMixin):
             raise
 
         if _orm_objects:
-            _orm_object: cls = _orm_objects[0]
+            _orm_object = _orm_objects[0]
 
         return _orm_object
 
@@ -251,7 +262,7 @@ class AsyncReadMixin(BaseMixin):
         async_session: AsyncSession,
         ids: list[str],
         warn_mode: WarnEnum = WarnEnum.DEBUG,
-    ) -> list[DeclarativeBase]:
+    ) -> list[DeclarativeBase | Self]:
         """Get ORM objects from database by IDs.
 
         Args:
@@ -265,17 +276,17 @@ class AsyncReadMixin(BaseMixin):
             Exception      : If failed to get ORM objects from database by IDs.
 
         Returns:
-            list[DeclarativeBase]: List of ORM objects.
+            list[DeclarativeBase | Self]: List of ORM objects.
         """
 
         if not ids:
             raise EmptyValueError("No IDs provided to select!")
 
-        _orm_objects: list[cls] = []
+        _orm_objects: list[DeclarativeBase | Self] = []
         try:
             _stmt: Select = select(cls).where(cls.id.in_(ids))
             _result: Result = await async_session.execute(_stmt)
-            _orm_objects: list[cls] = _result.scalars().all()
+            _orm_objects = cast(list[DeclarativeBase | Self], _result.scalars().all())
 
             if not _orm_objects:
                 raise NoResultFound(
@@ -399,10 +410,10 @@ class AsyncReadMixin(BaseMixin):
         try:
             _stmt: Select = select(func.count()).select_from(cls)
             if where:
-                _stmt: Select = cls._build_where(stmt=_stmt, where=where)
+                _stmt = cast(Select, cls._build_where(stmt=_stmt, where=where))
 
             _result: Result = await async_session.execute(_stmt)
-            _count: int = _result.scalar()
+            _count = cast(int, _result.scalar())
         except Exception:
             _message = f"Failed to count `{cls.__name__}` objects by '{where}' filter in database!"
             if warn_mode == WarnEnum.ALWAYS:
