@@ -1,8 +1,15 @@
+import sys
 import json
 from uuid import UUID
 from datetime import datetime
-from typing import Any
+from typing import Any, cast
 from collections.abc import Sequence
+
+if sys.version_info >= (3, 11):
+    from typing import Self
+else:
+    from typing_extensions import Self
+
 
 from pydantic import validate_call
 from sqlalchemy import (
@@ -16,7 +23,6 @@ from sqlalchemy import (
     inspect,
     Select,
     select,
-    Insert,
     Update,
     Delete,
     Subquery,
@@ -129,7 +135,10 @@ class BaseMixin(TimestampMixin, IdStrMixin):
         """
 
         _dict = {}
-        _columns: ReadOnlyProperties = inspect(self).mapper.column_attrs
+        _inspect = inspect(self)
+        assert _inspect is not None, "Failed to inspect ORM object!"
+
+        _columns: ReadOnlyProperties = _inspect.mapper.column_attrs
         for _column in _columns:
             _column_name = _column.key
             if (not excludes) or (_column_name not in excludes):
@@ -143,9 +152,9 @@ class BaseMixin(TimestampMixin, IdStrMixin):
                         _dict[_relation] = []
                         for _item in _attr:
                             if isinstance(_item, DeclarativeBase):
-                                _dict[_relation].append(_item.to_dict())
+                                _dict[_relation].append(cast(Self, _item).to_dict())
                     elif isinstance(_attr, DeclarativeBase):
-                        _dict[_relation] = _attr.to_dict()
+                        _dict[_relation] = cast(Self, _attr).to_dict()
                     elif _attr is None:
                         _dict[_relation] = None
                     else:
@@ -180,7 +189,7 @@ class BaseMixin(TimestampMixin, IdStrMixin):
     @validate_call(config={"arbitrary_types_allowed": True})
     def to_dict_list(
         cls,
-        orm_objects: list[DeclarativeBase],
+        orm_objects: list[Self],
         excludes: list[str] | None = None,
         load_relations: list[str] | None = None,
     ) -> list[dict[str, Any]]:
@@ -205,14 +214,14 @@ class BaseMixin(TimestampMixin, IdStrMixin):
 
     @classmethod
     @validate_call
-    def from_json(cls, json_str: str) -> DeclarativeBase:
+    def from_json(cls, json_str: str) -> Self:
         """Convert JSON string to ORM object.
 
         Args:
             json_str (str, required): JSON string.
 
         Returns:
-            DeclarativeBase: ORM object.
+            Self: ORM object.
         """
 
         _dict = json.loads(json_str)
@@ -233,20 +242,20 @@ class BaseMixin(TimestampMixin, IdStrMixin):
     @validate_call(config={"arbitrary_types_allowed": True})
     def _build_where(
         cls,
-        stmt: Select | Insert | Update | Delete,
+        stmt: Select | Update | Delete,
         where: list[dict[str, Any]] | dict[str, Any],
-    ) -> Select | Insert | Update | Delete:
+    ) -> Select | Update | Delete:
         """Build SQLAlchemy SQL statement with `where` filter conditions.
 
         Args:
-            stmt  (Select | Insert | Update | Delete    , required): SQLAlchemy SQL statement.
+            stmt  (Select | Update | Delete    , required): SQLAlchemy SQL statement.
             where (list[dict[str, Any]] | dict[str, Any], required): List of filter conditions
 
         Raises:
             ValueError: If `column` or `value` key doesn't exist in `where` filter.
 
         Returns:
-            Select | Insert | Update | Delete: Built SQLAlchemy SQL statement.
+            Select | Update | Delete: Built SQLAlchemy SQL statement.
         """
 
         if isinstance(where, dict):
@@ -328,9 +337,9 @@ class BaseMixin(TimestampMixin, IdStrMixin):
 
         # Deffered join to improve performance:
         # Subquery:
-        _sub_query: Select = select(cls.id)
+        _sub_select: Select = select(cls.id)
         if where:
-            _sub_query = cls._build_where(stmt=_sub_query, where=where)
+            _sub_select = cast(Select, cls._build_where(stmt=_sub_select, where=where))
 
         if order_by:
             if isinstance(order_by, str):
@@ -339,17 +348,17 @@ class BaseMixin(TimestampMixin, IdStrMixin):
             if isinstance(order_by, list):
                 for _order_by in order_by:
                     if hasattr(cls, _order_by):
-                        _sub_query = _sub_query.order_by(
+                        _sub_select = _sub_select.order_by(
                             _sort_direct(getattr(cls, _order_by))
                         )
 
-        _sub_query: Select = _sub_query.order_by(_sort_direct(cls.id))
+        _sub_select: Select = _sub_select.order_by(_sort_direct(cls.id))
 
         if not disable_limit:
-            _sub_query = _sub_query.limit(limit).offset(offset)
+            _sub_select = _sub_select.limit(limit).offset(offset)
 
         # Make into subquery:
-        _sub_query: Subquery = _sub_query.subquery()
+        _sub_query: Subquery = _sub_select.subquery()
 
         # Main query:
         _stmt: Select = select(cls).join(_sub_query, cls.id == _sub_query.c.id)
