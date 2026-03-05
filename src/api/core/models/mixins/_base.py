@@ -204,12 +204,13 @@ class BaseMixin(TimestampMixin, IdStrMixin):
             list[dict[str, Any]]: List of dictionaries from ORM objects.
         """
 
+        _orm_objects = cast(list[DeclarativeBase | Self], orm_objects)
+
         _dict_list = []
-        for _orm_object in orm_objects:
-            if not isinstance(_orm_object, cls):
-                raise TypeError(
-                    f"`orm_objects` list argument has invalid type {type(_orm_object)} of item!"
-                )
+        for _orm_object in _orm_objects:
+            assert isinstance(
+                _orm_object, cls
+            ), f"`orm_objects` list argument has invalid type {type(_orm_object)} of item!"
 
             _dict_list.append(
                 _orm_object.to_dict(excludes=excludes, load_relations=load_relations)
