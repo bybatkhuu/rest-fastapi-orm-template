@@ -189,7 +189,7 @@ class BaseMixin(TimestampMixin, IdStrMixin):
     @validate_call(config={"arbitrary_types_allowed": True})
     def to_dict_list(
         cls,
-        orm_objects: list[Self],
+        orm_objects: list[DeclarativeBase],
         excludes: list[str] | None = None,
         load_relations: list[str] | None = None,
     ) -> list[dict[str, Any]]:
@@ -207,7 +207,9 @@ class BaseMixin(TimestampMixin, IdStrMixin):
         _dict_list = []
         for _orm_object in orm_objects:
             _dict_list.append(
-                _orm_object.to_dict(excludes=excludes, load_relations=load_relations)
+                cast(Self, _orm_object).to_dict(
+                    excludes=excludes, load_relations=load_relations
+                )
             )
 
         return _dict_list
