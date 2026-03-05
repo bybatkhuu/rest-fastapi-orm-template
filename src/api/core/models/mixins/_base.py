@@ -206,10 +206,13 @@ class BaseMixin(TimestampMixin, IdStrMixin):
 
         _dict_list = []
         for _orm_object in orm_objects:
-            _dict_list.append(
-                cast(Self, _orm_object).to_dict(
-                    excludes=excludes, load_relations=load_relations
+            if not isinstance(_orm_object, cls):
+                raise TypeError(
+                    f"`orm_objects` list argument has invalid type {type(_orm_object)} of item!"
                 )
+
+            _dict_list.append(
+                _orm_object.to_dict(excludes=excludes, load_relations=load_relations)
             )
 
         return _dict_list
