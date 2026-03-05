@@ -1,10 +1,11 @@
 from pydantic import validate_call
 from sqlalchemy import Engine
-from sqlalchemy.orm import scoped_session, close_all_sessions
+from sqlalchemy.orm import scoped_session, close_all_sessions, Session
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     async_scoped_session,
     close_all_sessions as async_close_all_sessions,
+    AsyncSession,
 )
 
 from api.logger import logger
@@ -13,14 +14,22 @@ from api.logger import logger
 # Async
 @validate_call(config={"arbitrary_types_allowed": True})
 async def async_close_db(
-    sessions: list[scoped_session | async_scoped_session],
-    engines: list[Engine | AsyncEngine],
+    sessions: (
+        list[scoped_session[Session] | async_scoped_session[AsyncSession]]
+        | list[scoped_session[Session]]
+        | list[async_scoped_session[AsyncSession]]
+    ),
+    engines: list[Engine | AsyncEngine] | list[Engine] | list[AsyncEngine],
 ) -> None:
     """Close all database sessions (connections) and dispose all engines.
 
     Args:
-        sessions (list[scoped_session | async_scoped_session], required): List of SQLAlchemy sessions.
-        engines  (list[Engine | AsyncEngine]                 , required): List of SQLAlchemy engines.
+        sessions (list[scoped_session[Session] |
+                  async_scoped_session[AsyncSession]] |
+                  list[scoped_session[Session]] |
+                  list[async_scoped_session[AsyncSession]], required): List of SQLAlchemy sessions.
+        engines  (list[Engine | AsyncEngine] |
+                  list[Engine] | list[AsyncEngine]        , required): List of SQLAlchemy engines.
     """
 
     logger.info("Closing all database connections...")

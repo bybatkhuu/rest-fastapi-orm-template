@@ -80,7 +80,7 @@ def run_migrations_online() -> None:
     ), "Database DSN URL must be provided in the configuration!"
 
     _engine = make_engine(
-        dsn_url=api_config.db.dsn_url.get_secret_value(), poolclass=pool.NullPool  # type: ignore
+        dsn_url=api_config.db.dsn_url.get_secret_value(), poolclass=pool.NullPool
     )
     check_db(engine=_engine)
     with _engine.connect() as connection:

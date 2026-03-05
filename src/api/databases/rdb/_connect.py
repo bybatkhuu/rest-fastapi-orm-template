@@ -17,11 +17,11 @@ from api.config import config
 
 # Async
 @validate_call
-def make_async_engine(dsn_url: AnyUrl, **kwargs) -> AsyncEngine:
+def make_async_engine(dsn_url: AnyUrl | str, **kwargs) -> AsyncEngine:
     """Create an async engine from a database connection string.
 
     Args:
-        dsn_url  (AnyUrl        , required): Database connection string as Data Source Name (URL).
+        dsn_url  (AnyUrl | str  , required): Database connection string as Data Source Name (URL).
         **kwargs (dict[str, Any], optional): Additional keyword arguments.
 
     Returns:
@@ -62,8 +62,10 @@ def make_async_engine(dsn_url: AnyUrl, **kwargs) -> AsyncEngine:
     ) and ("pool_size" not in kwargs):
         kwargs["pool_size"] = config.db.pool_size
 
-    _dsn_url = str(dsn_url)
-    _async_engine = create_async_engine(url=_dsn_url, **kwargs)
+    if isinstance(dsn_url, AnyUrl):
+        dsn_url = str(dsn_url)
+
+    _async_engine = create_async_engine(url=dsn_url, **kwargs)
     return _async_engine
 
 
@@ -96,11 +98,11 @@ def create_async_session_maker(
 
 # Sync
 @validate_call
-def make_engine(dsn_url: AnyUrl, **kwargs) -> Engine:
+def make_engine(dsn_url: AnyUrl | str, **kwargs) -> Engine:
     """Create an engine from a database connection string.
 
     Args:
-        dsn_url  (AnyUrl        , required): Database connection string as Data Source Name (URL).
+        dsn_url  (AnyUrl | str  , required): Database connection string as Data Source Name (URL).
         **kwargs (dict[str, Any], optional): Additional keyword arguments.
 
     Returns:
@@ -141,8 +143,10 @@ def make_engine(dsn_url: AnyUrl, **kwargs) -> Engine:
     ) and ("pool_size" not in kwargs):
         kwargs["pool_size"] = config.db.pool_size
 
-    _dsn_url = str(dsn_url)
-    _engine = create_engine(url=_dsn_url, **kwargs)
+    if isinstance(dsn_url, AnyUrl):
+        dsn_url = str(dsn_url)
+
+    _engine = create_engine(url=dsn_url, **kwargs)
     return _engine
 
 

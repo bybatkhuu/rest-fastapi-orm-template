@@ -1,4 +1,10 @@
+import sys
 from typing import Any
+
+if sys.version_info >= (3, 11):
+    from typing import Self
+else:
+    from typing_extensions import Self
 
 from pydantic import validate_call
 from sqlalchemy import Result

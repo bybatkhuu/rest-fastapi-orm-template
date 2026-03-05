@@ -116,7 +116,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     logger.info("Praparing to shutdown...")
     # Add shutdown code here...
-    await async_close_db(sessions=sessions, engines=engines)  # type: ignore
+    await async_close_db(sessions=sessions, engines=engines)
     logger.success("Finished preparation to shutdown.")
 
 
