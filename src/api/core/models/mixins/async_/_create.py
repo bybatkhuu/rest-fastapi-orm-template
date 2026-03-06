@@ -17,7 +17,7 @@ from potato_util.constants import WarnEnum
 from api.config import config
 
 if config.db.dialect == "postgresql":
-    from sqlalchemy.dialects.postgresql import Insert as pqInsert, insert as pq_insert
+    from sqlalchemy.dialects.postgresql import Insert, insert
     from psycopg.errors import (
         NotNullViolation,
         UniqueViolation,
@@ -25,7 +25,7 @@ if config.db.dialect == "postgresql":
         CheckViolation,
     )
 elif (config.db.dialect == "mysql") or (config.db.dialect == "mariadb"):
-    from sqlalchemy.dialects.mysql import Insert as myInsert, insert as my_insert
+    from sqlalchemy.dialects.mysql import Insert, insert
 else:
     from sqlalchemy import Insert, insert
 from api.core.exceptions import (
@@ -39,6 +39,73 @@ from api.core.exceptions import (
 from api.logger import logger
 
 from ._update import AsyncUpdateMixin
+
+
+def _raise_integrity_error(
+    err: IntegrityError, cls_name: str | None = None, id_: str | None = None
+) -> None:
+    """Raise custom exceptions based on SQLAlchemy IntegrityError.
+
+    Args:
+        err      (IntegrityError, required): SQLAlchemy IntegrityError instance.
+        cls_name (str | None    , optional): Class name for PK error message. Defaults to None.
+        id_      (str | None    , optional): ID for PK error message. Defaults to None.
+
+    Raises:
+        NullConstraintError : If null constraint error occurred.
+        PrimaryKeyError     : If ID (PK) already exists in database.
+        UniqueKeyError      : If unique constraint error occurred.
+        ForeignKeyError     : If foreign key constraint error occurred.
+        CheckConstraintError: If check constraint error occurred.
+    """
+
+    _err_orig = err.orig
+    if isinstance(_err_orig, NotNullViolation):
+        _err_orig = cast(NotNullViolation, _err_orig)
+        raise NullConstraintError(f"`{_err_orig.diag.column_name}` cannot be NULL!")
+    elif isinstance(_err_orig, UniqueViolation):
+        _err_orig = cast(UniqueViolation, _err_orig)
+        _detail = _err_orig.diag.message_detail
+        _detail = (
+            _detail.replace("Key ", "")
+            if _detail
+            else "Unique constraint violation occurred!"
+        )
+
+        if cls_name and ("(id)=" in _detail):
+            _message = f"`{cls_name}` IDs already exist in database!"
+            if id_:
+                _message = f"`{cls_name}` '{id_}' ID already exists in database!"
+
+            logger.error(_message)
+            raise PrimaryKeyError(_detail)
+
+        raise UniqueKeyError(_detail)
+    elif isinstance(_err_orig, ForeignKeyViolation):
+        _err_orig = cast(ForeignKeyViolation, _err_orig)
+        _detail = _err_orig.diag.message_detail
+
+        if _detail:
+            _detail = (
+                _detail.replace("Key ", "")
+                .replace('"', "'")
+                .replace(f"table '{config.db.prefix}", "'")
+            )
+        else:
+            _detail = "Foreign key constraint violation occurred!"
+
+        raise ForeignKeyError(_detail)
+    elif isinstance(_err_orig, CheckViolation):
+        _err_orig = cast(CheckViolation, _err_orig)
+        _detail = _err_orig.diag.message_detail
+        _detail = (
+            _detail.replace("Key ", "")
+            if _detail
+            else "Check constraint violation occurred!"
+        )
+        raise CheckConstraintError(_detail)
+
+    return
 
 
 @declarative_mixin
@@ -109,49 +176,9 @@ class AsyncCreateMixin(AsyncUpdateMixin):
                 await async_session.rollback()
 
             if isinstance(err, IntegrityError):
-                _err_orig = err.orig
-                if isinstance(_err_orig, NotNullViolation):
-                    _err_orig = cast(NotNullViolation, _err_orig)
-                    raise NullConstraintError(
-                        f"`{_err_orig.diag.column_name}` cannot be NULL!"
-                    )
-                elif isinstance(_err_orig, UniqueViolation):
-                    _err_orig = cast(UniqueViolation, _err_orig)
-                    _message_detail = _err_orig.diag.message_detail
-                    if _message_detail is not None:
-                        _message_detail = _message_detail.replace("Key ", "")
-                    else:
-                        _message_detail = "Unique constraint violation occurred!"
-
-                    if "(id)=" in _message_detail:
-                        logger.error(
-                            f"`{cls.__name__}` '{kwargs['id']}' ID already exists in database!"
-                        )
-                        raise PrimaryKeyError(_message_detail)
-
-                    raise UniqueKeyError(_message_detail)
-                elif isinstance(_err_orig, ForeignKeyViolation):
-                    _err_orig = cast(ForeignKeyViolation, _err_orig)
-                    _message_detail = _err_orig.diag.message_detail
-                    if _message_detail is not None:
-                        _message_detail = (
-                            _message_detail.replace("Key ", "")
-                            .replace('"', "'")
-                            .replace(f"table '{config.db.prefix}", "'")
-                        )
-                    else:
-                        _message_detail = "Foreign key constraint violation occurred!"
-
-                    raise ForeignKeyError(_message_detail)
-                elif isinstance(_err_orig, CheckViolation):
-                    _err_orig = cast(CheckViolation, _err_orig)
-                    _message_detail = _err_orig.diag.message_detail
-                    if _message_detail is not None:
-                        _message_detail = _message_detail.replace("Key ", "")
-                    else:
-                        _message_detail = "Check constraint violation occurred!"
-
-                    raise CheckConstraintError(_message_detail)
+                _raise_integrity_error(
+                    err=err, cls_name=cls.__name__, id_=kwargs.get("id")
+                )
 
             _message = f"Failed to insert `{cls.__name__}` object '{kwargs['id']}' ID into database!"
             if warn_mode == WarnEnum.ALWAYS:
@@ -213,48 +240,9 @@ class AsyncCreateMixin(AsyncUpdateMixin):
                 await async_session.rollback()
 
             if isinstance(err, IntegrityError):
-                _err_orig = err.orig
-                if isinstance(_err_orig, NotNullViolation):
-                    _err_orig = cast(NotNullViolation, _err_orig)
-                    raise NullConstraintError(
-                        f"`{_err_orig.diag.column_name}` cannot be NULL!"
-                    )
-                elif isinstance(_err_orig, UniqueViolation):
-                    _err_orig = cast(UniqueViolation, _err_orig)
-                    _message_detail = _err_orig.diag.message_detail
-                    if _message_detail is not None:
-                        _message_detail = _message_detail.replace("Key ", "")
-                    else:
-                        _message_detail = "Unique constraint violation occurred!"
-
-                    if "(id)=" in _message_detail:
-                        logger.error(
-                            f"`{self.__class__.__name__}` '{self.id}' ID already exists in database!"
-                        )
-                        raise PrimaryKeyError(_message_detail)
-                    raise UniqueKeyError(_message_detail)
-                elif isinstance(_err_orig, ForeignKeyViolation):
-                    _err_orig = cast(ForeignKeyViolation, _err_orig)
-                    _message_detail = _err_orig.diag.message_detail
-                    if _message_detail is not None:
-                        _message_detail = (
-                            _message_detail.replace("Key ", "")
-                            .replace('"', "'")
-                            .replace(f"table '{config.db.prefix}", "'")
-                        )
-                    else:
-                        _message_detail = "Foreign key constraint violation occurred!"
-
-                    raise ForeignKeyError(_message_detail)
-                elif isinstance(_err_orig, CheckViolation):
-                    _err_orig = cast(CheckViolation, _err_orig)
-                    _message_detail = _err_orig.diag.message_detail
-                    if _message_detail is not None:
-                        _message_detail = _message_detail.replace("Key ", "")
-                    else:
-                        _message_detail = "Check constraint violation occurred!"
-
-                    raise CheckConstraintError(_message_detail)
+                _raise_integrity_error(
+                    err=err, cls_name=self.__class__.__name__, id_=self.id
+                )
 
             _message = f"Failed to save `{self.__class__.__name__}` object (self) '{self.id}' ID into database!"
             if warn_mode == WarnEnum.ALWAYS:
@@ -339,19 +327,15 @@ class AsyncCreateMixin(AsyncUpdateMixin):
                     key: value for key, value in kwargs.items() if key != "id"
                 }
 
-                _stmt: Insert | pqInsert | myInsert
+                _stmt: Insert = insert(cls).values(**kwargs)
                 # Only for PostgreSQL
                 if config.db.dialect == "postgresql":
-                    _stmt = pq_insert(cls).values(**kwargs)
-                    _stmt = _stmt.on_conflict_do_update(
+                    _stmt = _stmt.on_conflict_do_update(  # type: ignore
                         index_elements=["id"], set_=_update_set
                     )
                 # Only for MySQL and MariaDB
                 elif (config.db.dialect == "mysql") or (config.db.dialect == "mariadb"):
-                    _stmt = my_insert(cls).values(**kwargs)
-                    _stmt = _stmt.on_duplicate_key_update(**_update_set)
-                else:
-                    _stmt = insert(cls).values(**kwargs)
+                    _stmt = _stmt.on_duplicate_key_update(**_update_set)  # type: ignore
 
                 if returning:
                     _stmt = _stmt.returning(cls)
@@ -368,45 +352,7 @@ class AsyncCreateMixin(AsyncUpdateMixin):
                     await async_session.rollback()
 
                 if isinstance(err, IntegrityError):
-                    _err_orig = err.orig
-                    if isinstance(_err_orig, NotNullViolation):
-                        _err_orig = cast(NotNullViolation, _err_orig)
-                        raise NullConstraintError(
-                            f"`{_err_orig.diag.column_name}` cannot be NULL!"
-                        )
-                    elif isinstance(_err_orig, UniqueViolation):
-                        _err_orig = cast(UniqueViolation, _err_orig)
-                        _message_detail = _err_orig.diag.message_detail
-                        if _message_detail is not None:
-                            _message_detail = _message_detail.replace("Key ", "")
-                        else:
-                            _message_detail = "Unique constraint violation occurred!"
-
-                        raise UniqueKeyError(_message_detail)
-                    elif isinstance(_err_orig, ForeignKeyViolation):
-                        _err_orig = cast(ForeignKeyViolation, _err_orig)
-                        _message_detail = _err_orig.diag.message_detail
-                        if _message_detail is not None:
-                            _message_detail = (
-                                _message_detail.replace("Key ", "")
-                                .replace('"', "'")
-                                .replace(f"table '{config.db.prefix}", "'")
-                            )
-                        else:
-                            _message_detail = (
-                                "Foreign key constraint violation occurred!"
-                            )
-
-                        raise ForeignKeyError(_message_detail)
-                    elif isinstance(_err_orig, CheckViolation):
-                        _err_orig = cast(CheckViolation, _err_orig)
-                        _message_detail = _err_orig.diag.message_detail
-                        if _message_detail is not None:
-                            _message_detail = _message_detail.replace("Key ", "")
-                        else:
-                            _message_detail = "Check constraint violation occurred!"
-
-                        raise CheckConstraintError(_message_detail)
+                    _raise_integrity_error(err=err)
 
                 _message = f"Failed to upsert `{cls.__name__}` object '{kwargs['id']}' ID into database!"
                 if warn_mode == WarnEnum.ALWAYS:
@@ -477,49 +423,7 @@ class AsyncCreateMixin(AsyncUpdateMixin):
                 await async_session.rollback()
 
             if isinstance(err, IntegrityError):
-                _err_orig = err.orig
-                if isinstance(err.orig, NotNullViolation):
-                    _err_orig = cast(NotNullViolation, _err_orig)
-                    raise NullConstraintError(
-                        f"`{_err_orig.diag.column_name}` cannot be NULL!"
-                    )
-                elif isinstance(_err_orig, UniqueViolation):
-                    _err_orig = cast(UniqueViolation, _err_orig)
-                    _message_detail = _err_orig.diag.message_detail
-                    if _message_detail is not None:
-                        _message_detail = _message_detail.replace("Key ", "")
-                    else:
-                        _message_detail = "Unique constraint violation occurred!"
-
-                    if "(id)=" in _message_detail:
-                        logger.error(
-                            f"`{cls.__name__}` IDs already exists in database!"
-                        )
-                        raise PrimaryKeyError(_message_detail)
-
-                    raise UniqueKeyError(_message_detail)
-                elif isinstance(_err_orig, ForeignKeyViolation):
-                    _err_orig = cast(ForeignKeyViolation, _err_orig)
-                    _message_detail = _err_orig.diag.message_detail
-                    if _message_detail is not None:
-                        _message_detail = (
-                            _message_detail.replace("Key ", "")
-                            .replace('"', "'")
-                            .replace(f"table '{config.db.prefix}", "'")
-                        )
-                    else:
-                        _message_detail = "Foreign key constraint violation occurred!"
-
-                    raise ForeignKeyError(_message_detail)
-                elif isinstance(_err_orig, CheckViolation):
-                    _err_orig = cast(CheckViolation, _err_orig)
-                    _message_detail = _err_orig.diag.message_detail
-                    if _message_detail is not None:
-                        _message_detail = _message_detail.replace("Key ", "")
-                    else:
-                        _message_detail = "Check constraint violation occurred!"
-
-                    raise CheckConstraintError(_message_detail)
+                _raise_integrity_error(err=err, cls_name=cls.__name__)
 
             _message = f"Failed to bulk insert `{cls.__name__}` objects into database!"
             if warn_mode == WarnEnum.ALWAYS:

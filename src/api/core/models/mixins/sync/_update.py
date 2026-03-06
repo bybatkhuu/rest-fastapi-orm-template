@@ -34,6 +34,54 @@ from api.logger import logger
 from ._read import ReadMixin
 
 
+def _raise_integrity_error(err: IntegrityError) -> None:
+    """Raise custom exceptions based on SQLAlchemy IntegrityError.
+
+    Args:
+        err (IntegrityError, required): SQLAlchemy IntegrityError instance.
+
+    Raises:
+        NullConstraintError : If null constraint error occurred.
+        UniqueKeyError      : If unique constraint error occurred.
+        ForeignKeyError     : If foreign key constraint error occurred.
+        CheckConstraintError: If check constraint error occurred.
+    """
+
+    _err_orig = err.orig
+    if isinstance(_err_orig, NotNullViolation):
+        _err_orig = cast(NotNullViolation, _err_orig)
+        raise NullConstraintError(f"`{_err_orig.diag.column_name}` cannot be NULL!")
+    elif isinstance(_err_orig, UniqueViolation):
+        _err_orig = cast(UniqueViolation, _err_orig)
+        _detail = _err_orig.diag.message_detail
+        _detail = (
+            _detail.replace("Key ", "") if _detail else "Unique constraint violation!"
+        )
+        raise UniqueKeyError(_detail)
+    elif isinstance(_err_orig, ForeignKeyViolation):
+        _err_orig = cast(ForeignKeyViolation, _err_orig)
+        _detail = _err_orig.diag.message_detail
+        if _detail:
+            _detail = (
+                _detail.replace("Key ", "")
+                .replace('"', "'")
+                .replace(f"table '{config.db.prefix}", "'")
+            )
+        else:
+            _detail = "Foreign key constraint violation!"
+
+        raise ForeignKeyError(_detail)
+    elif isinstance(_err_orig, CheckViolation):
+        _err_orig = cast(CheckViolation, _err_orig)
+        _detail = _err_orig.diag.message_detail
+        _detail = (
+            _detail.replace("Key ", "") if _detail else "Check constraint violation!"
+        )
+        raise CheckConstraintError(_detail)
+
+    return
+
+
 @declarative_mixin
 class UpdateMixin(ReadMixin):
     @validate_call(config={"arbitrary_types_allowed": True})
@@ -81,43 +129,7 @@ class UpdateMixin(ReadMixin):
             if isinstance(err, NoResultFound):
                 raise
             elif isinstance(err, IntegrityError):
-                _err_orig = err.orig
-                if isinstance(_err_orig, NotNullViolation):
-                    _err_orig = cast(NotNullViolation, _err_orig)
-                    raise NullConstraintError(
-                        f"`{_err_orig.diag.column_name}` cannot be NULL!"
-                    )
-                elif isinstance(_err_orig, UniqueViolation):
-                    _err_orig = cast(UniqueViolation, _err_orig)
-                    _message_detail = _err_orig.diag.message_detail
-                    if _message_detail is not None:
-                        _message_detail = _message_detail.replace("Key ", "")
-                    else:
-                        _message_detail = "Unique constraint violation!"
-
-                    raise UniqueKeyError(_message_detail)
-                elif isinstance(_err_orig, ForeignKeyViolation):
-                    _err_orig = cast(ForeignKeyViolation, _err_orig)
-                    _message_detail = _err_orig.diag.message_detail
-                    if _message_detail is not None:
-                        _message_detail = (
-                            _message_detail.replace("Key ", "")
-                            .replace('"', "'")
-                            .replace(f"table '{config.db.prefix}", "'")
-                        )
-                    else:
-                        _message_detail = "Foreign key constraint violation!"
-
-                    raise ForeignKeyError(_message_detail)
-                elif isinstance(_err_orig, CheckViolation):
-                    _err_orig = cast(CheckViolation, _err_orig)
-                    _message_detail = _err_orig.diag.message_detail
-                    if _message_detail is not None:
-                        _message_detail = _message_detail.replace("Key ", "")
-                    else:
-                        _message_detail = "Check constraint violation!"
-
-                    raise CheckConstraintError(_message_detail)
+                _raise_integrity_error(err=err)
 
             _message = f"Failed to update `{self.__class__.__name__}` object (self) '{self.id}' ID into database!"
             if warn_mode == WarnEnum.ALWAYS:
@@ -225,43 +237,7 @@ class UpdateMixin(ReadMixin):
                 if isinstance(err, NoResultFound):
                     raise
                 elif isinstance(err, IntegrityError):
-                    _err_orig = err.orig
-                    if isinstance(_err_orig, NotNullViolation):
-                        _err_orig = cast(NotNullViolation, _err_orig)
-                        raise NullConstraintError(
-                            f"`{_err_orig.diag.column_name}` cannot be NULL!"
-                        )
-                    elif isinstance(_err_orig, UniqueViolation):
-                        _err_orig = cast(UniqueViolation, _err_orig)
-                        _message_detail = _err_orig.diag.message_detail
-                        if _message_detail is not None:
-                            _message_detail = _message_detail.replace("Key ", "")
-                        else:
-                            _message_detail = "Unique constraint violation!"
-
-                        raise UniqueKeyError(_message_detail)
-                    elif isinstance(_err_orig, ForeignKeyViolation):
-                        _err_orig = cast(ForeignKeyViolation, _err_orig)
-                        _message_detail = _err_orig.diag.message_detail
-                        if _message_detail is not None:
-                            _message_detail = (
-                                _message_detail.replace("Key ", "")
-                                .replace('"', "'")
-                                .replace(f"table '{config.db.prefix}", "'")
-                            )
-                        else:
-                            _message_detail = "Foreign key constraint violation!"
-
-                        raise ForeignKeyError(_message_detail)
-                    elif isinstance(_err_orig, CheckViolation):
-                        _err_orig = cast(CheckViolation, _err_orig)
-                        _message_detail = _err_orig.diag.message_detail
-                        if _message_detail is not None:
-                            _message_detail = _message_detail.replace("Key ", "")
-                        else:
-                            _message_detail = "Check constraint violation!"
-
-                        raise CheckConstraintError(_message_detail)
+                    _raise_integrity_error(err=err)
 
                 _message = f"Failed to update `{cls.__name__}` object with '{id}' ID into database!"
                 if warn_mode == WarnEnum.ALWAYS:
@@ -355,43 +331,7 @@ class UpdateMixin(ReadMixin):
             if isinstance(err, NoResultFound):
                 raise
             elif isinstance(err, IntegrityError):
-                _err_orig = err.orig
-                if isinstance(_err_orig, NotNullViolation):
-                    _err_orig = cast(NotNullViolation, _err_orig)
-                    raise NullConstraintError(
-                        f"`{_err_orig.diag.column_name}` cannot be NULL!"
-                    )
-                elif isinstance(_err_orig, UniqueViolation):
-                    _err_orig = cast(UniqueViolation, _err_orig)
-                    _message_detail = _err_orig.diag.message_detail
-                    if _message_detail is not None:
-                        _message_detail = _message_detail.replace("Key ", "")
-                    else:
-                        _message_detail = "Unique constraint violation!"
-
-                    raise UniqueKeyError(_message_detail)
-                elif isinstance(_err_orig, ForeignKeyViolation):
-                    _err_orig = cast(ForeignKeyViolation, _err_orig)
-                    _message_detail = _err_orig.diag.message_detail
-                    if _message_detail is not None:
-                        _message_detail = (
-                            _message_detail.replace("Key ", "")
-                            .replace('"', "'")
-                            .replace(f"table '{config.db.prefix}", "'")
-                        )
-                    else:
-                        _message_detail = "Foreign key constraint violation!"
-
-                    raise ForeignKeyError(_message_detail)
-                elif isinstance(_err_orig, CheckViolation):
-                    _err_orig = cast(CheckViolation, _err_orig)
-                    _message_detail = _err_orig.diag.message_detail
-                    if _message_detail is not None:
-                        _message_detail = _message_detail.replace("Key ", "")
-                    else:
-                        _message_detail = "Check constraint violation!"
-
-                    raise CheckConstraintError(_message_detail)
+                _raise_integrity_error(err=err)
 
             _message = f"Failed to update `{cls.__name__}` objects by '{ids}' IDs into database!"
             if warn_mode == WarnEnum.ALWAYS:
@@ -461,43 +401,7 @@ class UpdateMixin(ReadMixin):
             if isinstance(err, NoResultFound):
                 raise
             elif isinstance(err, IntegrityError):
-                _err_orig = err.orig
-                if isinstance(_err_orig, NotNullViolation):
-                    _err_orig = cast(NotNullViolation, _err_orig)
-                    raise NullConstraintError(
-                        f"`{_err_orig.diag.column_name}` cannot be NULL!"
-                    )
-                elif isinstance(_err_orig, UniqueViolation):
-                    _err_orig = cast(UniqueViolation, _err_orig)
-                    _message_detail = _err_orig.diag.message_detail
-                    if _message_detail is not None:
-                        _message_detail = _message_detail.replace("Key ", "")
-                    else:
-                        _message_detail = "Unique constraint violation!"
-
-                    raise UniqueKeyError(_message_detail)
-                elif isinstance(_err_orig, ForeignKeyViolation):
-                    _err_orig = cast(ForeignKeyViolation, _err_orig)
-                    _message_detail = _err_orig.diag.message_detail
-                    if _message_detail is not None:
-                        _message_detail = (
-                            _message_detail.replace("Key ", "")
-                            .replace('"', "'")
-                            .replace(f"table '{config.db.prefix}", "'")
-                        )
-                    else:
-                        _message_detail = "Foreign key constraint violation!"
-
-                    raise ForeignKeyError(_message_detail)
-                elif isinstance(_err_orig, CheckViolation):
-                    _err_orig = cast(CheckViolation, _err_orig)
-                    _message_detail = _err_orig.diag.message_detail
-                    if _message_detail is not None:
-                        _message_detail = _message_detail.replace("Key ", "")
-                    else:
-                        _message_detail = "Check constraint violation!"
-
-                    raise CheckConstraintError(_message_detail)
+                _raise_integrity_error(err=err)
 
             _message = f"Failed to update `{cls.__name__}` objects into database!"
             if warn_mode == WarnEnum.ALWAYS:
@@ -602,43 +506,7 @@ class UpdateMixin(ReadMixin):
                     session.rollback()
 
                 if isinstance(err, IntegrityError):
-                    _err_orig = err.orig
-                    if isinstance(err.orig, NotNullViolation):
-                        _err_orig = cast(NotNullViolation, _err_orig)
-                        raise NullConstraintError(
-                            f"`{_err_orig.diag.column_name}` cannot be NULL!"
-                        )
-                    elif isinstance(_err_orig, UniqueViolation):
-                        _err_orig = cast(UniqueViolation, _err_orig)
-                        _message_detail = _err_orig.diag.message_detail
-                        if _message_detail is not None:
-                            _message_detail = _message_detail.replace("Key ", "")
-                        else:
-                            _message_detail = "Unique constraint violation!"
-
-                        raise UniqueKeyError(_message_detail)
-                    elif isinstance(_err_orig, ForeignKeyViolation):
-                        _err_orig = cast(ForeignKeyViolation, _err_orig)
-                        _message_detail = _err_orig.diag.message_detail
-                        if _message_detail is not None:
-                            _message_detail = (
-                                _message_detail.replace("Key ", "")
-                                .replace('"', "'")
-                                .replace(f"table '{config.db.prefix}", "'")
-                            )
-                        else:
-                            _message_detail = "Foreign key constraint violation!"
-
-                        raise ForeignKeyError(_message_detail)
-                    elif isinstance(_err_orig, CheckViolation):
-                        _err_orig = cast(CheckViolation, _err_orig)
-                        _message_detail = _err_orig.diag.message_detail
-                        if _message_detail is not None:
-                            _message_detail = _message_detail.replace("Key ", "")
-                        else:
-                            _message_detail = "Check constraint violation!"
-
-                        raise CheckConstraintError(_message_detail)
+                    _raise_integrity_error(err=err)
 
                 _message = f"Failed to update `{cls.__name__}` object(s) by '{where}' filter into database!"
                 if warn_mode == WarnEnum.ALWAYS:
@@ -703,44 +571,7 @@ class UpdateMixin(ReadMixin):
                 session.rollback()
 
             if isinstance(err, IntegrityError):
-                _err_orig = err.orig
-                if isinstance(err.orig, NotNullViolation):
-                    _err_orig = cast(NotNullViolation, _err_orig)
-
-                    raise NullConstraintError(
-                        f"`{_err_orig.diag.column_name}` cannot be NULL!"
-                    )
-                elif isinstance(_err_orig, UniqueViolation):
-                    _err_orig = cast(UniqueViolation, _err_orig)
-                    _message_detail = _err_orig.diag.message_detail
-                    if _message_detail is not None:
-                        _message_detail = _message_detail.replace("Key ", "")
-                    else:
-                        _message_detail = "Unique constraint violation!"
-
-                    raise UniqueKeyError(_message_detail)
-                elif isinstance(_err_orig, ForeignKeyViolation):
-                    _err_orig = cast(ForeignKeyViolation, _err_orig)
-                    _message_detail = _err_orig.diag.message_detail
-                    if _message_detail is not None:
-                        _message_detail = (
-                            _message_detail.replace("Key ", "")
-                            .replace('"', "'")
-                            .replace(f"table '{config.db.prefix}", "'")
-                        )
-                    else:
-                        _message_detail = "Foreign key constraint violation!"
-
-                    raise ForeignKeyError(_message_detail)
-                elif isinstance(_err_orig, CheckViolation):
-                    _err_orig = cast(CheckViolation, _err_orig)
-                    _message_detail = _err_orig.diag.message_detail
-                    if _message_detail is not None:
-                        _message_detail = _message_detail.replace("Key ", "")
-                    else:
-                        _message_detail = "Check constraint violation!"
-
-                    raise CheckConstraintError(_message_detail)
+                _raise_integrity_error(err=err)
 
             _message = f"Failed to update all `{cls.__name__}` objects into database!"
             if warn_mode == WarnEnum.ALWAYS:

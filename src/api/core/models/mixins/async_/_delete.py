@@ -26,6 +26,34 @@ from api.logger import logger
 from ._read import AsyncReadMixin
 
 
+def _raise_fk_error(err: DBAPIError) -> None:
+    """Raise ForeignKeyError if the error is a foreign key violation error.
+
+    Args:
+        err (DBAPIError, required): SQLAlchemy DBAPIError instance.
+
+    Raises:
+        ForeignKeyError: If the error is a foreign key violation error.
+    """
+
+    _err_orig = err.orig
+    if isinstance(_err_orig, ForeignKeyViolation):
+        _err_orig = cast(ForeignKeyViolation, _err_orig)
+        _detail = _err_orig.diag.message_detail
+        if _detail:
+            _detail = (
+                _detail.replace("Key ", "")
+                .replace('"', "'")
+                .replace(f"table '{config.db.prefix}", "'")
+            )
+        else:
+            _detail = "Foreign key violation error occurred!"
+
+        raise ForeignKeyError(_detail)
+
+    return
+
+
 @declarative_mixin
 class AsyncDeleteMixin(AsyncReadMixin):
     @validate_call(config={"arbitrary_types_allowed": True})
@@ -60,20 +88,7 @@ class AsyncDeleteMixin(AsyncReadMixin):
             if isinstance(err, NoResultFound):
                 raise
             if isinstance(err, DBAPIError):
-                _err_orig = err.orig
-                if isinstance(_err_orig, ForeignKeyViolation):
-                    _err_orig = cast(ForeignKeyViolation, _err_orig)
-                    _message_detail = _err_orig.diag.message_detail
-                    if _message_detail is not None:
-                        _message_detail = (
-                            _message_detail.replace("Key ", "")
-                            .replace('"', "'")
-                            .replace(f"table '{config.db.prefix}", "'")
-                        )
-                    else:
-                        _message_detail = "Foreign key violation error occurred while deleting object from database!"
-
-                    raise ForeignKeyError(_message_detail)
+                _raise_fk_error(err=err)
 
             _message = f"Failed to delete `{self.__class__.__name__}` object (self) '{self.id}' ID from database!"
             if warn_mode == WarnEnum.ALWAYS:
@@ -145,23 +160,7 @@ class AsyncDeleteMixin(AsyncReadMixin):
                 if isinstance(err, NoResultFound):
                     raise
                 if isinstance(err, DBAPIError):
-                    _err_orig = err.orig
-                    if isinstance(_err_orig, ForeignKeyViolation):
-                        _err_orig = cast(ForeignKeyViolation, _err_orig)
-                        _message_detail = _err_orig.diag.message_detail
-                        if _message_detail is not None:
-                            _message_detail = (
-                                _message_detail.replace("Key ", "")
-                                .replace('"', "'")
-                                .replace(f"table '{config.db.prefix}", "'")
-                            )
-                        else:
-                            _message_detail = (
-                                "Foreign key violation error occurred while deleting object from "
-                                "database!"
-                            )
-
-                        raise ForeignKeyError(_message_detail)
+                    _raise_fk_error(err=err)
 
                 _message = (
                     f"Failed to delete `{cls.__name__}` object '{id}' ID from database!"
@@ -225,20 +224,7 @@ class AsyncDeleteMixin(AsyncReadMixin):
             if isinstance(err, NoResultFound):
                 raise
             if isinstance(err, DBAPIError):
-                _err_orig = err.orig
-                if isinstance(_err_orig, ForeignKeyViolation):
-                    _err_orig = cast(ForeignKeyViolation, _err_orig)
-                    _message_detail = _err_orig.diag.message_detail
-                    if _message_detail is not None:
-                        _message_detail = (
-                            _message_detail.replace("Key ", "")
-                            .replace('"', "'")
-                            .replace(f"table '{config.db.prefix}", "'")
-                        )
-                    else:
-                        _message_detail = "Foreign key violation error occurred while deleting objects from database!"
-
-                    raise ForeignKeyError(_message_detail)
+                _raise_fk_error(err=err)
 
             _message = f"Failed to delete `{cls.__name__}` objects by '{ids}' IDs from database!"
             if warn_mode == WarnEnum.ALWAYS:
@@ -292,20 +278,7 @@ class AsyncDeleteMixin(AsyncReadMixin):
             if isinstance(err, NoResultFound):
                 raise
             if isinstance(err, DBAPIError):
-                _err_orig = err.orig
-                if isinstance(_err_orig, ForeignKeyViolation):
-                    _err_orig = cast(ForeignKeyViolation, _err_orig)
-                    _message_detail = _err_orig.diag.message_detail
-                    if _message_detail is not None:
-                        _message_detail = (
-                            _message_detail.replace("Key ", "")
-                            .replace('"', "'")
-                            .replace(f"table '{config.db.prefix}", "'")
-                        )
-                    else:
-                        _message_detail = "Foreign key violation error occurred while deleting objects from database!"
-
-                    raise ForeignKeyError(_message_detail)
+                _raise_fk_error(err=err)
 
             _message = f"Failed to delete `{cls.__name__}` objects from database!"
             if warn_mode == WarnEnum.ALWAYS:
@@ -391,23 +364,7 @@ class AsyncDeleteMixin(AsyncReadMixin):
                 if isinstance(err, NoResultFound):
                     raise
                 if isinstance(err, DBAPIError):
-                    _err_orig = err.orig
-                    if isinstance(_err_orig, ForeignKeyViolation):
-                        _err_orig = cast(ForeignKeyViolation, _err_orig)
-                        _message_detail = _err_orig.diag.message_detail
-                        if _message_detail is not None:
-                            _message_detail = (
-                                _message_detail.replace("Key ", "")
-                                .replace('"', "'")
-                                .replace(f"table '{config.db.prefix}", "'")
-                            )
-                        else:
-                            _message_detail = (
-                                "Foreign key violation error occurred while deleting objects from "
-                                "database!"
-                            )
-
-                        raise ForeignKeyError(_message_detail)
+                    _raise_fk_error(err=err)
 
                 _message = f"Failed to delete `{cls.__name__}` object by '{where}' filter from database!"
                 if warn_mode == WarnEnum.ALWAYS:
@@ -454,20 +411,7 @@ class AsyncDeleteMixin(AsyncReadMixin):
                 await async_session.rollback()
 
             if isinstance(err, DBAPIError):
-                _err_orig = err.orig
-                if isinstance(_err_orig, ForeignKeyViolation):
-                    _err_orig = cast(ForeignKeyViolation, _err_orig)
-                    _message_detail = _err_orig.diag.message_detail
-                    if _message_detail is not None:
-                        _message_detail = (
-                            _message_detail.replace("Key ", "")
-                            .replace('"', "'")
-                            .replace(f"table '{config.db.prefix}", "'")
-                        )
-                    else:
-                        _message_detail = "Foreign key violation error occurred while deleting objects from database!"
-
-                    raise ForeignKeyError(_message_detail)
+                _raise_fk_error(err=err)
 
             _message = f"Failed to delete all `{cls.__name__}` objects from database!"
             if warn_mode == WarnEnum.ALWAYS:
