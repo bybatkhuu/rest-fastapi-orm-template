@@ -5,7 +5,7 @@ from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from potato_util.constants import WarnEnum
-from beans_logging import log_at
+from beans_logging_fastapi import log_at
 
 from api.core.constants import ErrorCodeEnum
 from api.config import config

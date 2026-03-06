@@ -4,7 +4,7 @@ from pydantic import validate_call
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from potato_util.constants import WarnEnum
-from beans_logging import log_at
+from beans_logging_fastapi import log_at
 
 from .model import TableStatORM
 
