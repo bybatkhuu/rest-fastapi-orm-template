@@ -5,12 +5,12 @@ from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from potato_util.constants import WarnEnum
+from beans_logging import log_at
 
 from api.core.constants import ErrorCodeEnum
 from api.config import config
 from api.core.exceptions import BaseHTTPException, EmptyValueError, NullConstraintError
 from api.endpoints.table_stat import service as table_stat_service
-from api.logger import async_log_mode
 
 from .schemas import TaskBasePM
 from .model import TaskORM
@@ -41,9 +41,7 @@ async def async_get_list(
         tuple[list[TaskORM], int]: List of tasks and total count as tuple.
     """
 
-    await async_log_mode(
-        message=f"[{request_id}] - Getting task list...", warn_mode=warn_mode
-    )
+    log_at(message=f"[{request_id}] - Getting task list...", warn_mode=warn_mode)
 
     _where = []
     if kwargs:
@@ -74,7 +72,7 @@ async def async_get_list(
             warn_mode=WarnEnum.DEBUG,
         )
 
-    await async_log_mode(
+    log_at(
         message=f"[{request_id}] - Successfully retrieved task list.",
         level="SUCCESS",
         warn_mode=warn_mode,
@@ -106,9 +104,7 @@ async def async_create(
         TaskORM: New TaskORM model.
     """
 
-    await async_log_mode(
-        message=f"[{request_id}] - Creating task...", warn_mode=warn_mode
-    )
+    log_at(message=f"[{request_id}] - Creating task...", warn_mode=warn_mode)
 
     _task_orm: TaskORM
     try:
@@ -121,7 +117,7 @@ async def async_create(
             ),
         )
 
-        await async_log_mode(
+        log_at(
             message=f"[{request_id}] - Successfully created task with '{_task_orm.id}' ID.",
             level="SUCCESS",
             warn_mode=warn_mode,
@@ -158,7 +154,7 @@ async def async_get(
         TaskORM: TaskORM model.
     """
 
-    await async_log_mode(
+    log_at(
         message=f"[{request_id}] - Getting task with '{id}' ID...",
         warn_mode=warn_mode,
     )
@@ -169,7 +165,7 @@ async def async_get(
             TaskORM, await TaskORM.async_get(async_session=async_session, id=id)
         )
 
-        await async_log_mode(
+        log_at(
             message=f"[{request_id}] - Successfully retrieved task with '{id}' ID.",
             level="SUCCESS",
             warn_mode=warn_mode,
@@ -212,7 +208,7 @@ async def async_update(
         TaskORM: Updated TaskORM object.
     """
 
-    await async_log_mode(
+    log_at(
         message=f"[{request_id}] - Updating task with '{id}' ID...",
         warn_mode=warn_mode,
     )
@@ -226,7 +222,7 @@ async def async_update(
             ),
         )
 
-        await async_log_mode(
+        log_at(
             message=f"[{request_id}] - Successfully updated task with '{id}' ID.",
             level="SUCCESS",
             warn_mode=warn_mode,
@@ -272,7 +268,7 @@ async def async_delete(
         BaseHTTPException: If task is not found.
     """
 
-    await async_log_mode(
+    log_at(
         message=f"[{request_id}] - Deleting task with '{id}' ID...",
         warn_mode=warn_mode,
     )
@@ -282,7 +278,7 @@ async def async_delete(
             async_session=async_session, id=id, auto_commit=auto_commit
         )
 
-        await async_log_mode(
+        log_at(
             message=f"[{request_id}] - Successfully deleted task with '{id}' ID.",
             level="SUCCESS",
             warn_mode=warn_mode,

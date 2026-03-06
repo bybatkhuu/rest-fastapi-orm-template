@@ -6,5 +6,5 @@ psycopg[c]~=3.3.3
 # psycopg[binary]~=3.3.3
 alembic~=1.18.4
 potato-util[crypto,async]~=0.5.3
-beans-logging-fastapi~=5.2.2
+beans-logging-fastapi~=6.0.0
 fastapi[all]~=0.135.1

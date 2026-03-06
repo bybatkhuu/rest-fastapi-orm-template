@@ -4,8 +4,7 @@ from pydantic import validate_call
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from potato_util.constants import WarnEnum
-
-from api.logger import async_log_mode
+from beans_logging import log_at
 
 from .model import TableStatORM
 
@@ -29,7 +28,7 @@ async def async_get_row_count(
         int: Count of rows.
     """
 
-    await async_log_mode(
+    log_at(
         message=f"[{request_id}] - Getting row count of '{table_name}' table from table stat...",
         warn_mode=warn_mode,
     )
@@ -46,7 +45,7 @@ async def async_get_row_count(
     if _table_stat_orm:
         _row_scount = _table_stat_orm.row_count
 
-    await async_log_mode(
+    log_at(
         message=f"[{request_id}] - Successfully got row count of '{table_name}' table: {_row_scount}.",
         level="SUCCESS",
         warn_mode=warn_mode,
