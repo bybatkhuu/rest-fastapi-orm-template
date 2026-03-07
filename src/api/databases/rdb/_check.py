@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import time
 import asyncio
 
@@ -7,14 +5,15 @@ from pydantic import validate_call
 from sqlalchemy import Engine, Result, text
 from sqlalchemy.ext.asyncio import AsyncEngine
 
-from api.core.constants import WarnEnum
+from potato_util.constants import WarnEnum
+
 from api.config import config
 from api.logger import logger
 
 from ._create import async_create_db, create_db
 
 
-## Async
+# Async
 @validate_call(config={"arbitrary_types_allowed": True})
 async def async_is_db_connectable(async_engine: AsyncEngine) -> bool:
     """Check if the database is connectable.
@@ -31,7 +30,7 @@ async def async_is_db_connectable(async_engine: AsyncEngine) -> bool:
         async with async_engine.connect() as _connection:
             _result: Result = await _connection.execute(text("SELECT 1"))
             _is_connectable = bool(_result.scalar())
-    except Exception:
+    except Exception:  # nosec B110
         pass
     finally:
         await async_engine.dispose()
@@ -74,7 +73,8 @@ async def async_check_db(async_engine: AsyncEngine, is_write_db: bool = True) ->
                     raise SystemExit(2)
 
             logger.warning(
-                f"Unable to connect '{_db_name}' {_tmp_str}database {_i + 1} time(s), retrying in {config.db.retry_after} second(s)..."
+                f"Unable to connect '{_db_name}' {_tmp_str}database {_i + 1} time(s), "
+                f"retrying in {config.db.retry_after} second(s)..."
             )
             await asyncio.sleep(config.db.retry_after)
 
@@ -82,7 +82,7 @@ async def async_check_db(async_engine: AsyncEngine, is_write_db: bool = True) ->
     return _is_done
 
 
-## Sync
+# Sync
 @validate_call(config={"arbitrary_types_allowed": True})
 def is_db_connectable(engine: Engine) -> bool:
     """Check if the database is connectable.
@@ -99,7 +99,7 @@ def is_db_connectable(engine: Engine) -> bool:
         with engine.connect() as _connection:
             _result: Result = _connection.execute(text("SELECT 1"))
             _is_connectable = bool(_result.scalar())
-    except Exception:
+    except Exception:  # nosec B110
         pass
     finally:
         engine.dispose()
@@ -142,7 +142,8 @@ def check_db(engine: Engine, is_write_db: bool = True) -> bool:
                     raise SystemExit(2)
 
             logger.warning(
-                f"Unable to connect '{_db_name}' {_tmp_str}database {_i + 1} time(s), retrying in {config.db.retry_after} second(s)..."
+                f"Unable to connect '{_db_name}' {_tmp_str}database {_i + 1} time(s), "
+                f"retrying in {config.db.retry_after} second(s)..."
             )
             time.sleep(config.db.retry_after)
 

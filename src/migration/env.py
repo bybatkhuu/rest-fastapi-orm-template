@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from logging.config import fileConfig
 
 # from sqlalchemy import engine_from_config
@@ -9,7 +7,6 @@ from alembic import context
 from api.config import config as api_config
 from api.databases.rdb import make_engine, check_db
 from api.core.models import BaseORM
-
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -43,14 +40,17 @@ def run_migrations_offline() -> None:
 
     Calls to context.execute() here emit the given string to the
     script output.
-
     """
 
     # url = config.get_main_option("sqlalchemy.url")
 
-    url = api_config.db.dsn_url.get_secret_value()
+    assert (
+        api_config.db.dsn_url is not None
+    ), "Database DSN URL must be provided in the configuration!"
+
+    _url = api_config.db.dsn_url.get_secret_value()
     context.configure(
-        url=url,
+        url=_url,
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
@@ -67,7 +67,6 @@ def run_migrations_online() -> None:
 
     In this scenario we need to create an Engine
     and associate a connection with the context.
-
     """
 
     # connectable = engine_from_config(
@@ -75,6 +74,10 @@ def run_migrations_online() -> None:
     #     prefix="sqlalchemy.",
     #     poolclass=pool.NullPool,
     # )
+
+    assert (
+        api_config.db.dsn_url is not None
+    ), "Database DSN URL must be provided in the configuration!"
 
     _engine = make_engine(
         dsn_url=api_config.db.dsn_url.get_secret_value(), poolclass=pool.NullPool

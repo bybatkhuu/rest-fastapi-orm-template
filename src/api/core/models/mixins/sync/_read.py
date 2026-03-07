@@ -1,13 +1,18 @@
-# -*- coding: utf-8 -*-
+import sys
+from typing import Any, cast
 
-from typing import Union, List, Dict, Any, Optional
+if sys.version_info >= (3, 11):
+    from typing import Self
+else:
+    from typing_extensions import Self
 
 from pydantic import validate_call
 from sqlalchemy import Select, select, Result, func
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import DeclarativeBase, declarative_mixin, Session
 
-from api.core.constants import WarnEnum
+from potato_util.constants import WarnEnum
+
 from api.config import config
 from api.core.exceptions import EmptyValueError
 from api.core.models.mixins import BaseMixin
@@ -21,40 +26,41 @@ class ReadMixin(BaseMixin):
     def select_by_where(
         cls,
         session: Session,
-        where: Union[List[Dict[str, Any]], Dict[str, Any]],
+        where: list[dict[str, Any]] | dict[str, Any],
         offset: int = 0,
         limit: int = config.db.select_limit,
-        order_by: Union[List[str], str, None] = None,
+        order_by: list[str] | str | None = None,
         is_desc: bool = True,
-        joins: Optional[List[str]] = None,
+        joins: list[str] | None = None,
         disable_limit: bool = False,
         allow_no_result: bool = True,
         warn_mode: WarnEnum = WarnEnum.DEBUG,
-    ) -> List[DeclarativeBase]:
+    ) -> list[DeclarativeBase | Self]:
         """Select ORM objects from database by where filter conditions.
 
         Args:
-            session         (Session                    , required): SQLAlchemy session for database connection.
-            where           (Union[List[Dict[str, Any]],
-                                         Dict[str, Any]], required): List of filter conditions.
-            offset          (int                        , optional): Number of objects to skip. Defaults to 0.
-            limit           (int                        , optional): Number of objects to limit. Defaults to `config.db.select_limit`.
-            order_by        (Union[List[str], str, None], optional): List of order by columns. Defaults to None.
-            is_desc         (bool                       , optional): Is sort descending or ascending. Defaults to True.
-            joins           (Optional[List[str]]        , optional): List of joinable relationships. Defaults to None.
-            disable_limit   (bool                       , optional): Disable select limit. Defaults to False.
-            allow_no_result (bool                       , optional): Allow no result. Defaults to True.
-            warn_mode       (WarnEnum                   , optional): Warning mode. Defaults to `WarnEnum.DEBUG`.
+            session         (Session               , required): SQLAlchemy session for database connection.
+            where           (list[dict[str, Any]] |
+                                     dict[str, Any], required): List of filter conditions.
+            offset          (int                   , optional): Number of objects to skip. Defaults to 0.
+            limit           (int                   , optional): Number of objects to limit.
+                                                                    Defaults to `config.db.select_limit`.
+            order_by        (list[str] | str | None, optional): List of order by columns. Defaults to None.
+            is_desc         (bool                  , optional): Is sort descending or ascending. Defaults to True.
+            joins           (list[str] | None      , optional): List of joinable relationships. Defaults to None.
+            disable_limit   (bool                  , optional): Disable select limit. Defaults to False.
+            allow_no_result (bool                  , optional): Allow no result. Defaults to True.
+            warn_mode       (WarnEnum              , optional): Warning mode. Defaults to `WarnEnum.DEBUG`.
 
         Raises:
             NoResultFound: If no result found and `allow_no_result` is False.
             Exception    : If failed to get ORM objects from database by where filter conditions.
 
         Returns:
-            List[DeclarativeBase]: List of ORM objects.
+            list[DeclarativeBase | Self]: List of ORM objects.
         """
 
-        _orm_objects: List[cls] = []
+        _orm_objects: list[DeclarativeBase | Self] = []
         try:
             _stmt: Select = cls._build_select(
                 where=where,
@@ -70,7 +76,7 @@ class ReadMixin(BaseMixin):
             if joins:
                 _result = _result.unique()
 
-            _orm_objects: List[cls] = _result.scalars().all()
+            _orm_objects = cast(list[DeclarativeBase | Self], _result.scalars().all())
         except Exception:
             _message = f"Failed to get `{cls.__name__}` objects from database by filtering with '{where}'!"
             if warn_mode == WarnEnum.ALWAYS:
@@ -95,32 +101,33 @@ class ReadMixin(BaseMixin):
         offset: int = 0,
         limit: int = config.db.select_limit,
         is_desc: bool = True,
-        joins: Optional[List[str]] = None,
+        joins: list[str] | None = None,
         disable_limit: bool = False,
         allow_no_result: bool = True,
         warn_mode: WarnEnum = WarnEnum.DEBUG,
-    ) -> List[DeclarativeBase]:
+    ) -> list[DeclarativeBase | Self]:
         """Select ORM objects from database.
 
         Args:
-            session         (Session            , required): SQLAlchemy session for database connection.
-            offset          (int                , optional): Number of objects to skip. Defaults to 0.
-            limit           (int                , optional): Number of objects to limit. Defaults to `config.db.select_limit`.
-            is_desc         (bool               , optional): Is sort descending or ascending. Defaults to True.
-            joins           (Optional[List[str]], optional): List of joinable relationships. Defaults to None.
-            disable_limit   (bool               , optional): Disable select limit. Defaults to False.
-            allow_no_result (bool               , optional): Allow no result. Defaults to True.
-            warn_mode       (WarnEnum           , optional): Warning mode. Defaults to `WarnEnum.DEBUG`.
+            session         (Session         , required): SQLAlchemy session for database connection.
+            offset          (int             , optional): Number of objects to skip. Defaults to 0.
+            limit           (int             , optional): Number of objects to limit.
+                                                            Defaults to `config.db.select_limit`.
+            is_desc         (bool            , optional): Is sort descending or ascending. Defaults to True.
+            joins           (list[str] | None, optional): List of joinable relationships. Defaults to None.
+            disable_limit   (bool            , optional): Disable select limit. Defaults to False.
+            allow_no_result (bool            , optional): Allow no result. Defaults to True.
+            warn_mode       (WarnEnum        , optional): Warning mode. Defaults to `WarnEnum.DEBUG`.
 
         Raises:
             Exception: Any exception from `select_by_where()`.
 
         Returns:
-            List[DeclarativeBase]: List of ORM objects.
+            list[DeclarativeBase | Self]: List of ORM objects.
         """
 
         try:
-            _orm_objects: List[cls] = cls.select_by_where(
+            _orm_objects = cls.select_by_where(
                 session=session,
                 where=[],
                 offset=offset,
@@ -150,7 +157,7 @@ class ReadMixin(BaseMixin):
         id: str,
         allow_no_result: bool = False,
         warn_mode: WarnEnum = WarnEnum.DEBUG,
-    ) -> Union[DeclarativeBase, None]:
+    ) -> DeclarativeBase | Self | None:
         """Get ORM object from database by ID.
 
         Args:
@@ -164,12 +171,12 @@ class ReadMixin(BaseMixin):
             Exception    : If failed to get ORM object from database by ID.
 
         Returns:
-            Union[DeclarativeBase, None]: ORM object or None.
+            DeclarativeBase | Self | None: ORM object or None.
         """
 
-        _orm_object: Union[cls, None] = None
+        _orm_object: DeclarativeBase | Self | None = None
         try:
-            _orm_object: Union[cls, None] = session.get(cls, id)
+            _orm_object = cast(DeclarativeBase | Self | None, session.get(cls, id))
         except Exception:
             _message = (
                 f"Failed to get `{cls.__name__}` object with '{id}' ID from database!"
@@ -193,38 +200,41 @@ class ReadMixin(BaseMixin):
     def get_by_where(
         cls,
         session: Session,
-        where: Union[List[Dict[str, Any]], Dict[str, Any]],
-        joins: Optional[List[str]] = None,
+        where: list[dict[str, Any]] | dict[str, Any],
+        joins: list[str] | None = None,
         allow_no_result: bool = True,
         warn_mode: WarnEnum = WarnEnum.DEBUG,
-    ) -> Union[DeclarativeBase, None]:
+    ) -> DeclarativeBase | Self | None:
         """Get ORM object from database by where filter conditions.
 
         Args:
-            session         (Session                    , required): SQLAlchemy session for database connection.
-            where           (Union[List[Dict[str, Any]],
-                                   Dict[str, Any]]      , required): List of filter conditions. Defaults to None.
-            joins           (Optional[List[str]]        , optional): List of joinable relationships. Defaults to None.
-            allow_no_result (bool                       , optional): Allow no result. Defaults to True.
-            warn_mode       (WarnEnum                   , optional): Warning mode. Defaults to `WarnEnum.DEBUG`.
+            session         (Session               , required): SQLAlchemy session for database connection.
+            where           (list[dict[str, Any]] |
+                                     dict[str, Any], required): List of filter conditions. Defaults to None.
+            joins           (list[str] | None      , optional): List of joinable relationships. Defaults to None.
+            allow_no_result (bool                  , optional): Allow no result. Defaults to True.
+            warn_mode       (WarnEnum              , optional): Warning mode. Defaults to `WarnEnum.DEBUG`.
 
         Raises:
             NoResultFound: If no result found and `allow_no_result` is False.
             Exception    : Any exception from `select_by_where()`.
 
         Returns:
-            Union[DeclarativeBase, None]: ORM object or None.
+            DeclarativeBase | Self | None: ORM object or None.
         """
 
-        _orm_object: Union[cls, None] = None
+        _orm_object: DeclarativeBase | Self | None = None
         try:
-            _orm_objects: List[cls] = cls.select_by_where(
-                session=session,
-                where=where,
-                limit=1,
-                joins=joins,
-                allow_no_result=allow_no_result,
-                warn_mode=WarnEnum.IGNORE,
+            _orm_objects = cast(
+                list[DeclarativeBase | Self],
+                cls.select_by_where(
+                    session=session,
+                    where=where,
+                    limit=1,
+                    joins=joins,
+                    allow_no_result=allow_no_result,
+                    warn_mode=WarnEnum.IGNORE,
+                ),
             )
         except NoResultFound:
             raise
@@ -238,20 +248,20 @@ class ReadMixin(BaseMixin):
             raise
 
         if _orm_objects:
-            _orm_object: cls = _orm_objects[0]
+            _orm_object = _orm_objects[0]
 
         return _orm_object
 
     @classmethod
     @validate_call(config={"arbitrary_types_allowed": True})
     def get_by_ids(
-        cls, session: Session, ids: List[str], warn_mode: WarnEnum = WarnEnum.DEBUG
-    ) -> List[DeclarativeBase]:
+        cls, session: Session, ids: list[str], warn_mode: WarnEnum = WarnEnum.DEBUG
+    ) -> list[DeclarativeBase | Self]:
         """Get ORM objects from database by IDs.
 
         Args:
             session   (Session  , required): SQLAlchemy session for database connection.
-            ids       (List[str], required): List of IDs.
+            ids       (list[str], required): List of IDs.
             warn_mode (WarnEnum , optional): Warning mode. Defaults to `WarnEnum.DEBUG`.
 
         Raises:
@@ -260,17 +270,17 @@ class ReadMixin(BaseMixin):
             Exception      : If failed to get ORM objects from database by IDs.
 
         Returns:
-            List[DeclarativeBase]: List of ORM objects.
+            list[DeclarativeBase | Self]: List of ORM objects.
         """
 
         if not ids:
             raise EmptyValueError("No IDs provided to select!")
 
-        _orm_objects: List[cls] = []
+        _orm_objects: list[DeclarativeBase | Self] = []
         try:
             _stmt: Select = select(cls).where(cls.id.in_(ids))
             _result: Result = session.execute(_stmt)
-            _orm_objects: List[cls] = _result.scalars().all()
+            _orm_objects = cast(list[DeclarativeBase | Self], _result.scalars().all())
 
             if not _orm_objects:
                 raise NoResultFound(
@@ -365,16 +375,16 @@ class ReadMixin(BaseMixin):
     def count_by_where(
         cls,
         session: Session,
-        where: Union[List[Dict[str, Any]], Dict[str, Any]],
+        where: list[dict[str, Any]] | dict[str, Any],
         warn_mode: WarnEnum = WarnEnum.DEBUG,
     ) -> int:
         """Count ORM objects in database by filter conditions.
 
         Args:
-            session   (Session                    , required): SQLAlchemy session for database connection.
-            where     (Union[List[Dict[str, Any]],
-                             Dict[str, Any]]      , required): List of filter conditions.
-            warn_mode (WarnEnum                   , optional): Warning mode. Defaults to `WarnEnum.DEBUG`.
+            session   (Session               , required): SQLAlchemy session for database connection.
+            where     (list[dict[str, Any]] |
+                               dict[str, Any], required): List of filter conditions.
+            warn_mode (WarnEnum              , optional): Warning mode. Defaults to `WarnEnum.DEBUG`.
 
         Raises:
             Exception: If failed to count ORM objects in database by filter conditions.
@@ -387,10 +397,10 @@ class ReadMixin(BaseMixin):
         try:
             _stmt: Select = select(func.count()).select_from(cls)
             if where:
-                _stmt: Select = cls._build_where(stmt=_stmt, where=where)
+                _stmt = cast(Select, cls._build_where(stmt=_stmt, where=where))
 
             _result: Result = session.execute(_stmt)
-            _count: int = _result.scalar()
+            _count = cast(int, _result.scalar())
         except Exception:
             _message = f"Failed to count `{cls.__name__}` objects by '{where}' filter in database!"
             if warn_mode == WarnEnum.ALWAYS:

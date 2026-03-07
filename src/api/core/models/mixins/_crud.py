@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from sqlalchemy.orm import declarative_mixin
 
 from .async_ import AsyncCreateMixin, AsyncDeleteMixin

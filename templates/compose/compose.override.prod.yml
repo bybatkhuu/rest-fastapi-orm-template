@@ -1,70 +1,67 @@
-services:
-  # db:
-  #   volumes:
-  #     - "./volumes/storage/postgresql/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d:ro"
-  #     - "db-logs:/var/log/postgresql"
-  #   deploy:
-  #     replicas: 0
-  #     resources:
-  #       limits:
-  #         cpus: "1.0"
-  #         memory: 1G
-  #   ports:
-  #     - "${FOT_DB_PORT:-5432}:${FOT_DB_PORT:-5432}"
-  #   healthcheck:
-  #     test: ["CMD-SHELL", "pg_isready -U ${FOT_DB_USERNAME:-fot_admin} -d ${FOT_DB_DATABASE:-fot_db}"]
-  #     start_period: 15s
-  #     start_interval: 1s
-  #     interval: 1m
-  #     timeout: 5s
-  #     retries: 3
+# services:
+#   db:
+#     volumes:
+#       - "./volumes/configs/postgresql/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d:ro"
+#       - "./volumes/storage/postgresql/logs:/var/log/postgresql"
+#     deploy:
+#       resources:
+#         limits:
+#           cpus: "1.0"
+#           memory: 1G
+#     ports:
+#       - "${FOT_DB_PORT:-5432}:${FOT_DB_PORT:-5432}"
+#     healthcheck:
+#       test: ["CMD-SHELL", "pg_isready -U ${FOT_DB_USERNAME:-fot_admin} -d ${FOT_DB_DATABASE:-fot_db}"]
+#       start_period: 15s
+#       start_interval: 1s
+#       interval: 1m
+#       timeout: 5s
+#       retries: 3
 
-  # db-gui:
-  #   image: dpage/pgadmin4:latest
-  #   depends_on:
-  #     db:
-  #       condition: service_healthy
-  #   restart: unless-stopped
-  #   environment:
-  #     PGADMIN_DEFAULT_EMAIL: ${FOT_DB_GUI_EMAIL:-fot_admin@example.com}
-  #     PGADMIN_DEFAULT_PASSWORD: "${FOT_DB_GUI_PASSWORD:-FOT_DB_GUI_PASSWORD123}"
-  #   volumes:
-  #     - "/etc/localtime:/etc/localtime:ro"
-  #     - "db-gui-data:/var/lib/pgadmin"
-  #   deploy:
-  #     replicas: 0
-  #     resources:
-  #       limits:
-  #         cpus: "0.5"
-  #         memory: 512M
-  #   ports:
-  #     - "${PGADMIN_PORT:-8080}:80"
+#   db-gui:
+#     image: dpage/pgadmin4:latest
+#     depends_on:
+#       db:
+#         condition: service_healthy
+#     restart: unless-stopped
+#     environment:
+#       PGADMIN_DEFAULT_EMAIL: ${FOT_DB_GUI_EMAIL:-fot_admin@example.com}
+#       PGADMIN_DEFAULT_PASSWORD: "${FOT_DB_GUI_PASSWORD:-FOT_DB_GUI_PASSWORD123}"
+#     volumes:
+#       - "/etc/localtime:/etc/localtime:ro"
+#       - "db-gui-data:/var/lib/pgadmin"
+#     deploy:
+#       resources:
+#         limits:
+#           cpus: "0.5"
+#           memory: 512M
+#     ports:
+#       - "${PGADMIN_PORT:-8080}:80"
 
-  api:
-    image: bybatkhuu/rest.fastapi-orm-template:3.0.0-250216
-    # volumes:
-    #   - "api-vscode-server:/home/fot-user/.vscode-server"
-    # depends_on:
-    #   db:
-    #     condition: service_healthy
-    # deploy:
-    #   replicas: 0
-    #   resources:
-    #     limits:
-    #       cpus: "0.5"
-    #       memory: 512M
-    # command: ["/bin/bash"]
-    # command: ["-b", "uvicorn main:app --host=0.0.0.0 --port=${FOT_API_PORT:-8000} --no-server-header --proxy-headers --forwarded-allow-ips='*' --no-access-log"]
-    # healthcheck:
-    #   test: ["CMD-SHELL", "curl -f http://localhost:${FOT_API_PORT:-8000}/api/v${FOT_API_VERSION:-1}/ping"]
-    #   start_period: 30s
-    #   start_interval: 1s
-    #   interval: 5m
-    #   timeout: 5s
-    #   retries: 3
+#   api:
+#     volumes:
+#       - "./volumes/.vscode-server:/home/fot-user/.vscode-server"
+#     depends_on:
+#       db:
+#         condition: service_healthy
+#     deploy:
+#       replicas: 3
+#       resources:
+#         limits:
+#           cpus: "0.5"
+#           memory: 512M
+#     ports: !override
+#       - "8000-8002:${FOT_API_PORT:-8000}"
+#     command: ["/bin/bash"]
+#     command: ["-b", "uvicorn api.main:app --host=0.0.0.0 --port=${FOT_API_PORT:-8000} --no-access-log --no-server-header --proxy-headers --forwarded-allow-ips='*'"]
+#     healthcheck:
+#       test: ["CMD-SHELL", "curl -f http://localhost:${FOT_API_PORT:-8000}/api/v${FOT_API_VERSION:-1}/ping"]
+#       start_period: 30s
+#       start_interval: 1s
+#       interval: 5m
+#       timeout: 5s
+#       retries: 3
 
 
 # volumes:
-#   db-logs:
 #   db-gui-data:
-#   api-vscode-server:

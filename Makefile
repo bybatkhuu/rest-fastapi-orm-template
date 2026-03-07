@@ -1,10 +1,11 @@
-.PHONY: help validate migrate start stop compose clean get-version test bump-version build docs changelog
+.PHONY: help validate start logs stop compose clean get-version test bump-version build release docs changelog dump-db backup
 
 help:
 	@echo "make help         -- show this help"
 	@echo "make validate     -- validate docker compose file"
 	@echo "make migrate      -- run migrations"
 	@echo "make start        -- start all services"
+	@echo "make logs         -- view service logs"
 	@echo "make stop         -- stop all services"
 	@echo "make compose      -- run docker-compose commands"
 	@echo "make clean        -- clean all"
@@ -12,8 +13,12 @@ help:
 	@echo "make test         -- run tests"
 	@echo "make bump-version -- bump version"
 	@echo "make build        -- build docker image"
-	@echo "make docs         -- build documentation"
+	@echo "make release      -- release new version"
 	@echo "make changelog    -- update changelog"
+	@echo "make docs         -- build documentation"
+	@echo "make dump-db      -- dump database"
+	@echo "make backup       -- backup data"
+
 
 validate:
 	./compose.sh validate
@@ -24,14 +29,17 @@ migrate:
 start:
 	./compose.sh start -l
 
+logs:
+	./compose.sh logs
+
 stop:
-	./compose.sh down
+	./compose.sh stop
 
 compose:
 	./compose.sh $(MAKEFLAGS)
 
 clean:
-	./scripts/clean.sh -a
+	./scripts/clean.sh $(MAKEFLAGS)
 
 get-version:
 	./scripts/get-version.sh
@@ -45,8 +53,17 @@ bump-version:
 build:
 	./scripts/build.sh $(MAKEFLAGS)
 
-docs:
-	./scripts/docs.sh $(MAKEFLAGS)
+release:
+	./scripts/release.sh
 
 changelog:
 	./scripts/changelog.sh $(MAKEFLAGS)
+
+docs:
+	./scripts/docs.sh $(MAKEFLAGS)
+
+dump-db:
+	./scripts/dump-db.sh
+
+backup:
+	./scripts/backup.sh
