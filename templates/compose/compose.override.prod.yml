@@ -19,24 +19,23 @@
 #       retries: 3
 
 #   db-gui:
-#     image: dpage/pgadmin4:latest
+#     image: adminer:latest
 #     depends_on:
 #       db:
 #         condition: service_healthy
 #     restart: unless-stopped
 #     environment:
-#       PGADMIN_DEFAULT_EMAIL: ${FOT_DB_GUI_EMAIL:-fot_admin@example.com}
-#       PGADMIN_DEFAULT_PASSWORD: "${FOT_DB_GUI_PASSWORD:-FOT_DB_GUI_PASSWORD123}"
+#       TERM: ${TERM:-xterm}
 #     volumes:
 #       - "/etc/localtime:/etc/localtime:ro"
-#       - "db-gui-data:/var/lib/pgadmin"
 #     deploy:
 #       resources:
 #         limits:
-#           cpus: "0.5"
-#           memory: 512M
+#           cpus: "0.25"
+#           memory: 256M
 #     ports:
-#       - "${PGADMIN_PORT:-8080}:80"
+#       - "${ADMINER_PORT:-8080}:8080"
+#     tty: true
 
 #   api:
 #     volumes:
@@ -61,7 +60,3 @@
 #       interval: 5m
 #       timeout: 5s
 #       retries: 3
-
-
-# volumes:
-#   db-gui-data:
