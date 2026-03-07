@@ -13,9 +13,8 @@ services:
       - "./volumes/storage/postgresql/data:/var/lib/postgresql"
     command: ["-p", "${FOT_DB_PORT:-5432}"]
     tty: true
-
   api:
-    image: bybatkhuu/rest-fastapi-orm-template:3.0.0-250216
+    image: bybatkhuu/rest-fastapi-orm-template:4.0.0-260307
     build:
       context: .
     depends_on:
