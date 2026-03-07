@@ -491,6 +491,7 @@ zsdoc/data
 
 # Custom rules (everything added below won't be overriden by 'Generate .gitignore File' if you use 'Update' option)
 
+
 # Directories:
 log/
 logs/
@@ -514,12 +515,10 @@ dataset
 datasets
 .benchmarks
 rest-fastapi-orm-template
-env
 *.bak
 pm2-process.json
 compose.override.yml
 compose.override.yaml
-sample.py
 example.py
 test.py
 
