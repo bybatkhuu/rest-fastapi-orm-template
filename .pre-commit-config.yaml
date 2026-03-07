@@ -21,10 +21,6 @@ exclude: |
     | data/.*
     | dataset/.*
     | datasets/.*
-    | result/.*
-    | results/.*
-    | output/.*
-    | outputs/.*
     | volumes/.*
     | tmp/.*
   )$
