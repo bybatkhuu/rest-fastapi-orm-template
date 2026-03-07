@@ -27,12 +27,6 @@ exclude: |
     | data/.*
     | dataset/.*
     | datasets/.*
-    | model/.*
-    | models/.*
-    | result/.*
-    | results/.*
-    | output/.*
-    | outputs/.*
     | volumes/.*
     | tmp/.*
   )$
