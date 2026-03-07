@@ -58,23 +58,27 @@ main()
 	_current_version="$(./scripts/get-version.sh)"
 	echo "[OK]: Current version: '${_current_version}'"
 
-	echo "[INFO]: Backing up PostgreSQL database..."
-	_dump_file_path="${BACKUPS_DIR}/fot.postgres.v${_current_version}.$(date -u '+%y%m%d_%H%M%S').sql.gz"
-	echo "[INFO]: Creating backup file: '${_dump_file_path}'"
+	echo "[INFO]: Dumping database into dump file..."
+	local _dt
+	_dt=$(date -u '+%y%m%d-%H%M%S')
+	_dump_file_path="${BACKUPS_DIR}/fot.db.v${_current_version}.${_dt}.dump"
+	echo "[INFO]: Dump file path: '${_dump_file_path}'"
 
-	docker compose exec -T "${DB_SERVICE_NAME}" \
-		env PGPASSWORD="${FOT_DB_PASSWORD}" \
-		pg_dump \
-			--username="${FOT_DB_USERNAME}" \
-			--dbname="${FOT_DB_DATABASE}" \
-			--verbose \
-			--clean \
-			--if-exists \
-			--no-owner \
-			--no-privileges \
-		| gzip > "${_dump_file_path}" || exit 2
+	echo -e "[INFO]: Dumping database...\n"
+	docker compose exec -T "${DB_SERVICE_NAME}" pg_dump \
+		-p "${FOT_DB_PORT}" \
+		-U "${FOT_DB_USERNAME}" \
+		-d "${FOT_DB_DATABASE}" \
+		-Fc -v \
+		-f "/tmp/db.${_dt}.dump" || exit 2
+	echo -e "\n[INFO]: Done."
 
-	echo "[OK]: Database backup completed."
+	echo -e "[INFO]: Copying dump file from container to host..."
+	docker compose cp "${DB_SERVICE_NAME}:/tmp/db.${_dt}.dump" "${_dump_file_path}" || exit 2
+	docker compose exec -T "${DB_SERVICE_NAME}" rm -vrf "/tmp/db.${_dt}.dump" || exit 2
+	echo "[OK]: Done."
+
+	echo "[OK]: Successfully dumped database into dump file."
 }
 
 main

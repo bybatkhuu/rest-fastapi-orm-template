@@ -11,6 +11,7 @@ services:
       POSTGRES_DB: ${FOT_DB_DATABASE:-fot_db}
     volumes:
       - "./volumes/storage/postgresql/data:/var/lib/postgresql"
+    command: ["-p", "${FOT_DB_PORT:-5432}"]
     tty: true
 
   api:
