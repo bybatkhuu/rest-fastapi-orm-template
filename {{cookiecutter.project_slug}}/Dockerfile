@@ -1,4 +1,5 @@
 # syntax=docker/dockerfile:1
+# check=skip=SecretsUsedInArgOrEnv
 
 ARG PYTHON_VERSION={{cookiecutter.python_version}}
 ARG BASE_IMAGE=python:${PYTHON_VERSION}-slim-bookworm
@@ -12,6 +13,8 @@ FROM ${BASE_IMAGE} AS builder
 
 ARG DEBIAN_FRONTEND
 ARG {{cookiecutter.env_prefix}}API_SLUG
+
+ENV	UV_LINK_MODE=copy
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
@@ -29,12 +32,12 @@ RUN --mount=type=cache,target=/root/.cache,sharing=locked \
 	apt-get install -y --no-install-recommends \
 		build-essential \
 		libpq-dev && \
-	python3 -m pip install --timeout 60 -U pip
+	python3 -m pip install --timeout 60 -U pip uv
 
 # COPY ./requirements* ./
 RUN	--mount=type=cache,target=/root/.cache,sharing=locked \
 	--mount=type=bind,source=requirements.txt,target=requirements.txt \
-	python3 -m pip install --prefix=/install --timeout 60 -r ./requirements.txt
+	python3 -m uv pip install --prefix=/install -r ./requirements.txt
 
 
 ## Here is the base image:
@@ -45,24 +48,28 @@ ARG {{cookiecutter.env_prefix}}API_SLUG
 
 ARG {{cookiecutter.env_prefix}}HOME_DIR="/app"
 ARG {{cookiecutter.env_prefix}}API_DIR="{% raw %}${{% endraw %}{{cookiecutter.env_prefix}}HOME_DIR}/{% raw %}${{% endraw %}{{cookiecutter.env_prefix}}API_SLUG}"
+ARG {{cookiecutter.env_prefix}}API_CONFIGS_DIR="/etc/{% raw %}${{% endraw %}{{cookiecutter.env_prefix}}API_SLUG}"
 ARG {{cookiecutter.env_prefix}}API_DATA_DIR="/var/lib/{% raw %}${{% endraw %}{{cookiecutter.env_prefix}}API_SLUG}"
 ARG {{cookiecutter.env_prefix}}API_LOGS_DIR="/var/log/{% raw %}${{% endraw %}{{cookiecutter.env_prefix}}API_SLUG}"
 ARG {{cookiecutter.env_prefix}}API_TMP_DIR="/tmp/{% raw %}${{% endraw %}{{cookiecutter.env_prefix}}API_SLUG}"
 ARG {{cookiecutter.env_prefix}}API_PORT=8000
-## IMPORTANT!: Get hashed password from build-arg!
-## echo "{{cookiecutter.env_prefix}}USER_PASSWORD123" | openssl passwd -5 -stdin
-ARG HASH_PASSWORD="\$5\$S6d3bt3eXvBW3zT1\$GcPvS36pfZ1Sk/oE8ixklLYrvQegc1xFjtE7gxlzJU8"
+ARG {{cookiecutter.env_prefix}}API_DOCS_ENABLED=false
+## echo "{{cookiecutter.env_prefix}}USER_PASSWORD123" | openssl passwd -6 -stdin
+ARG HASH_PASSWORD="\$6\$KTocg05KixrDJ/fk\$zROBplLOs/AuvRPmcKM88crNFcZoBKDXTQrEjPAoB3DM9qMaQSf6n6DsA47hiiZDOPJRt0ispphQMqP10e01I."
 ARG UID=1000
 ARG GID=11000
 ARG USER={{cookiecutter.project_abbr}}-user
 ARG GROUP={{cookiecutter.project_abbr}}-group
 
-ENV {{cookiecutter.env_prefix}}HOME_DIR="{% raw %}${{% endraw %}{{cookiecutter.env_prefix}}HOME_DIR}" \
+ENV {{cookiecutter.env_prefix}}API_SLUG="{% raw %}${{% endraw %}{{cookiecutter.env_prefix}}API_SLUG}" \
+	{{cookiecutter.env_prefix}}HOME_DIR="{% raw %}${{% endraw %}{{cookiecutter.env_prefix}}HOME_DIR}" \
 	{{cookiecutter.env_prefix}}API_DIR="{% raw %}${{% endraw %}{{cookiecutter.env_prefix}}API_DIR}" \
+	{{cookiecutter.env_prefix}}API_CONFIGS_DIR="{% raw %}${{% endraw %}{{cookiecutter.env_prefix}}API_CONFIGS_DIR}" \
 	{{cookiecutter.env_prefix}}API_DATA_DIR="{% raw %}${{% endraw %}{{cookiecutter.env_prefix}}API_DATA_DIR}" \
 	{{cookiecutter.env_prefix}}API_LOGS_DIR="{% raw %}${{% endraw %}{{cookiecutter.env_prefix}}API_LOGS_DIR}" \
 	{{cookiecutter.env_prefix}}API_TMP_DIR="{% raw %}${{% endraw %}{{cookiecutter.env_prefix}}API_TMP_DIR}" \
 	{{cookiecutter.env_prefix}}API_PORT={% raw %}${{% endraw %}{{cookiecutter.env_prefix}}API_PORT} \
+	{{cookiecutter.env_prefix}}API_DOCS_ENABLED={% raw %}${{% endraw %}{{cookiecutter.env_prefix}}API_DOCS_ENABLED} \
 	UID=${UID} \
 	GID=${GID} \
 	USER=${USER} \
@@ -72,7 +79,8 @@ ENV {{cookiecutter.env_prefix}}HOME_DIR="{% raw %}${{% endraw %}{{cookiecutter.e
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-RUN rm -rfv /var/lib/apt/lists/* /var/cache/apt/archives/* /tmp/* /root/.cache/* && \
+RUN --mount=type=secret,id=HASH_PASSWORD \
+	rm -vrf /var/lib/apt/lists/* /var/cache/apt/archives/* /tmp/* /root/.cache/* && \
 	apt-get clean -y && \
 	# echo "Acquire::http::Pipeline-Depth 0;" >> /etc/apt/apt.conf.d/99fixbadproxy && \
 	# echo "Acquire::http::No-Cache true;" >> /etc/apt/apt.conf.d/99fixbadproxy && \
@@ -80,6 +88,7 @@ RUN rm -rfv /var/lib/apt/lists/* /var/cache/apt/archives/* /tmp/* /root/.cache/*
 	apt-get update --fix-missing -o Acquire::CompressionTypes::Order::=gz && \
 	apt-get install -y --no-install-recommends \
 		sudo \
+		gosu \
 		locales \
 		tzdata \
 		procps \
@@ -98,19 +107,34 @@ RUN rm -rfv /var/lib/apt/lists/* /var/cache/apt/archives/* /tmp/* /root/.cache/*
 	echo "LC_ALL=en_US.UTF-8" >> /etc/default/locale && \
 	addgroup --gid ${GID} ${GROUP} && \
 	useradd -lmN -d "/home/${USER}" -s /bin/bash -g ${GROUP} -G sudo -u ${UID} ${USER} && \
-	echo "${USER} ALL=(ALL) NOPASSWD: ALL" > "/etc/sudoers.d/${USER}" && \
-	chmod 0440 "/etc/sudoers.d/${USER}" && \
-	echo -e "${USER}:${HASH_PASSWORD}" | chpasswd -e && \
+	# echo "${USER} ALL=(ALL) NOPASSWD: ALL" > "/etc/sudoers.d/${USER}" && \
+	# chmod 0440 "/etc/sudoers.d/${USER}" && \
+	if [ -f "/run/secrets/HASH_PASSWORD" ]; then \
+		echo "Using hashed password from secret: /run/secrets/HASH_PASSWORD"; \
+		echo -e "${USER}:$(cat /run/secrets/HASH_PASSWORD)" | chpasswd -e; \
+	else \
+		echo "Using hashed password from build argument: HASH_PASSWORD"; \
+		echo -e "${USER}:${HASH_PASSWORD}" | chpasswd -e; \
+	fi && \
 	echo -e "\nalias ls='ls -aF --group-directories-first --color=auto'" >> /root/.bashrc && \
 	echo -e "alias ll='ls -alhF --group-directories-first --color=auto'\n" >> /root/.bashrc && \
 	echo -e "\numask 0002" >> "/home/${USER}/.bashrc" && \
 	echo "alias ls='ls -aF --group-directories-first --color=auto'" >> "/home/${USER}/.bashrc" && \
 	echo -e "alias ll='ls -alhF --group-directories-first --color=auto'\n" >> "/home/${USER}/.bashrc" && \
 	rm -rfv /var/lib/apt/lists/* /var/cache/apt/archives/* /tmp/* /root/.cache/* "/home/${USER}/.cache/*" && \
-	mkdir -pv "{% raw %}${{% endraw %}{{cookiecutter.env_prefix}}API_DIR}" "{% raw %}${{% endraw %}{{cookiecutter.env_prefix}}API_DATA_DIR}" "{% raw %}${{% endraw %}{{cookiecutter.env_prefix}}API_LOGS_DIR}" "{% raw %}${{% endraw %}{{cookiecutter.env_prefix}}API_TMP_DIR}" && \
-	chown -Rc "${USER}:${GROUP}" "{% raw %}${{% endraw %}{{cookiecutter.env_prefix}}HOME_DIR}" "{% raw %}${{% endraw %}{{cookiecutter.env_prefix}}API_DATA_DIR}" "{% raw %}${{% endraw %}{{cookiecutter.env_prefix}}API_LOGS_DIR}" "{% raw %}${{% endraw %}{{cookiecutter.env_prefix}}API_TMP_DIR}" && \
-	find "{% raw %}${{% endraw %}{{cookiecutter.env_prefix}}API_DIR}" "{% raw %}${{% endraw %}{{cookiecutter.env_prefix}}API_DATA_DIR}" -type d -exec chmod -c 770 {} + && \
-	find "{% raw %}${{% endraw %}{{cookiecutter.env_prefix}}API_DIR}" "{% raw %}${{% endraw %}{{cookiecutter.env_prefix}}API_DATA_DIR}" -type d -exec chmod -c ug+s {} + && \
+	mkdir -pv "{% raw %}${{% endraw %}{{cookiecutter.env_prefix}}API_DIR}" \
+		"{% raw %}${{% endraw %}{{cookiecutter.env_prefix}}API_CONFIGS_DIR}" \
+		"{% raw %}${{% endraw %}{{cookiecutter.env_prefix}}API_DATA_DIR}" \
+		"{% raw %}${{% endraw %}{{cookiecutter.env_prefix}}API_LOGS_DIR}" \
+		"{% raw %}${{% endraw %}{{cookiecutter.env_prefix}}API_TMP_DIR}" && \
+	chown -Rc "${USER}:${GROUP}" \
+		"{% raw %}${{% endraw %}{{cookiecutter.env_prefix}}HOME_DIR}" \
+		"{% raw %}${{% endraw %}{{cookiecutter.env_prefix}}API_CONFIGS_DIR}" \
+		"{% raw %}${{% endraw %}{{cookiecutter.env_prefix}}API_DATA_DIR}" \
+		"{% raw %}${{% endraw %}{{cookiecutter.env_prefix}}API_LOGS_DIR}" \
+		"{% raw %}${{% endraw %}{{cookiecutter.env_prefix}}API_TMP_DIR}" && \
+	find "{% raw %}${{% endraw %}{{cookiecutter.env_prefix}}API_DIR}" "{% raw %}${{% endraw %}{{cookiecutter.env_prefix}}API_CONFIGS_DIR}" "{% raw %}${{% endraw %}{{cookiecutter.env_prefix}}API_DATA_DIR}" -type d -exec chmod -c 770 {} + && \
+	find "{% raw %}${{% endraw %}{{cookiecutter.env_prefix}}API_DIR}" "{% raw %}${{% endraw %}{{cookiecutter.env_prefix}}API_CONFIGS_DIR}" "{% raw %}${{% endraw %}{{cookiecutter.env_prefix}}API_DATA_DIR}" -type d -exec chmod -c ug+s {} + && \
 	find "{% raw %}${{% endraw %}{{cookiecutter.env_prefix}}API_LOGS_DIR}" "{% raw %}${{% endraw %}{{cookiecutter.env_prefix}}API_TMP_DIR}" -type d -exec chmod -c 775 {} + && \
 	find "{% raw %}${{% endraw %}{{cookiecutter.env_prefix}}API_LOGS_DIR}" "{% raw %}${{% endraw %}{{cookiecutter.env_prefix}}API_TMP_DIR}" -type d -exec chmod -c +s {} +
 
@@ -131,9 +155,9 @@ COPY --chown=${UID}:${GID} --chmod=770 ./scripts/docker/*.sh /usr/local/bin/
 # VOLUME ["{% raw %}${{% endraw %}{{cookiecutter.env_prefix}}API_DATA_DIR}"]
 # EXPOSE {% raw %}${{% endraw %}{{cookiecutter.env_prefix}}API_PORT}
 
-USER ${UID}:${GID}
+# USER ${UID}:${GID}
 # HEALTHCHECK --start-period=30s --start-interval=1s --interval=5m --timeout=5s --retries=3 \
 # 	CMD curl -f http://localhost:{% raw %}${{% endraw %}{{cookiecutter.env_prefix}}API_PORT}/api/v{% raw %}${{% endraw %}{{cookiecutter.env_prefix}}API_VERSION:-1}/ping || exit 1
 
 ENTRYPOINT ["docker-entrypoint.sh"]
-# CMD ["-b", "uvicorn main:app --host=0.0.0.0 --port={% raw %}${{% endraw %}{{cookiecutter.env_prefix}}API_PORT:-8000} --no-access-log --no-server-header --proxy-headers --forwarded-allow-ips='*'"]
+# CMD ["-b", "uvicorn api.main:app --host=0.0.0.0 --port=${FT_API_PORT:-8000} --no-access-log --no-server-header --proxy-headers --forwarded-allow-ips='*'"]

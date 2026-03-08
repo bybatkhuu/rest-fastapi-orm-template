@@ -1,13 +1,12 @@
-# -*- coding: utf-8 -*-
-
-from typing import List, Tuple
+from typing import Any
 
 from fastapi import APIRouter, Request, Depends, Path, Body, Query, HTTPException
 from pydantic import constr
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api.core.constants import ALPHANUM_HYPHEN_REGEX
-from api.core import utils
+from potato_util.constants import ALPHANUM_HYPHEN_REGEX
+from potato_util.http.fastapi import get_relative_url
+
 from api.config import config
 from api.core.dependencies import db as db_deps
 from api.core.responses import BaseResponse
@@ -16,7 +15,6 @@ from api.logger import logger
 from .schemas import TaskBasePM, TaskUpPM, ResTaskPM, ResTasksPM
 from .model import TaskORM
 from . import service
-
 
 router = APIRouter(prefix="/tasks", tags=["Tasks"])
 
@@ -56,8 +54,8 @@ async def get_tasks(
     logger.info(f"[{_request_id}] - Getting task list...")
 
     _message = "Not found any task!"
-    _orm_tasks: List[TaskORM] = []
-    _links = {
+    _orm_tasks: list[TaskORM] = []
+    _links: dict[str, Any | None] = {
         "first": None,
         "prev": None,
         "next": None,
@@ -66,7 +64,7 @@ async def get_tasks(
     _list_count = 0
     _all_count = 0
     try:
-        _result_tuple: Tuple[List[TaskORM], int] = await service.async_get_list(
+        _result_tuple: tuple[list[TaskORM], int] = await service.async_get_list(
             async_session=db_session,
             request_id=_request_id,
             offset=skip,
@@ -78,24 +76,24 @@ async def get_tasks(
         _url = request.url.remove_query_params(["skip", "limit", "is_desc"])
 
         if 0 < _all_count:
-            _links["first"] = utils.get_relative_url(
+            _links["first"] = get_relative_url(
                 _url.include_query_params(skip=0, limit=limit, is_desc=is_desc)
             )
 
             _last_skip = max((_all_count - 1) // limit * limit, 0)
-            _links["last"] = utils.get_relative_url(
+            _links["last"] = get_relative_url(
                 _url.include_query_params(skip=_last_skip, limit=limit, is_desc=is_desc)
             )
 
         if 0 < skip:
             _prev_skip = max(skip - limit, 0)
-            _links["prev"] = utils.get_relative_url(
+            _links["prev"] = get_relative_url(
                 _url.include_query_params(skip=_prev_skip, limit=limit, is_desc=is_desc)
             )
 
         if limit < len(_orm_tasks):
             _orm_tasks = _orm_tasks[:limit]
-            _links["next"] = utils.get_relative_url(
+            _links["next"] = get_relative_url(
                 _url.include_query_params(
                     skip=(skip + limit), limit=limit, is_desc=is_desc
                 )
@@ -191,7 +189,7 @@ async def get_task(
         ...,
         min_length=8,
         max_length=64,
-        regex=ALPHANUM_HYPHEN_REGEX,
+        pattern=ALPHANUM_HYPHEN_REGEX,
         title="Task ID",
         description="Task ID to get.",
         examples=["tas1701388800_a0dc99d68d5e427eafe00525fac47012"],
@@ -237,7 +235,7 @@ async def update_task(
         ...,
         min_length=8,
         max_length=64,
-        regex=ALPHANUM_HYPHEN_REGEX,
+        pattern=ALPHANUM_HYPHEN_REGEX,
         title="Task ID",
         description="Task ID to update.",
         examples=["tas1701388800_cd388fca74de4e8085df41e7c6df762e"],
@@ -293,7 +291,7 @@ async def delete_task(
         ...,
         min_length=8,
         max_length=64,
-        regex=ALPHANUM_HYPHEN_REGEX,
+        pattern=ALPHANUM_HYPHEN_REGEX,
         title="Task ID",
         description="Task ID to delete.",
         examples=["tas1701388800_cd388fca74de4e8085df41e7c6df762e"],

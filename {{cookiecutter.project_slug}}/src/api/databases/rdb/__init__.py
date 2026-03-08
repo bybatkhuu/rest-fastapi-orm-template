@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# flake8: noqa
 
 from api.config import config
 
@@ -7,14 +7,13 @@ from ._check import *
 from ._create import *
 from ._close import *
 
-
 register_orms()
 
 ## Async
-async_write_engine = make_async_engine(dsn_url=config.db.dsn_url.get_secret_value())
+async_write_engine = make_async_engine(dsn_url=config.db.dsn_url.get_secret_value())  # type: ignore
 AsyncWriteSession = create_async_session_maker(async_engine=async_write_engine)
 
-async_read_engine = make_async_engine(dsn_url=config.db.read_dsn_url.get_secret_value())
+async_read_engine = make_async_engine(dsn_url=config.db.read_dsn_url.get_secret_value())  # type: ignore
 AsyncReadSession = create_async_session_maker(async_engine=async_read_engine)
 
 ## Sync

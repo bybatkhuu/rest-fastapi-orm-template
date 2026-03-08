@@ -1,4 +1,5 @@
 ---
+title: Home
 hide:
   - navigation
 #   - toc
@@ -6,7 +7,7 @@ hide:
 
 # Introduction
 
-{{cookiecutter.project_description}}
+This is a template repository for FastAPI with ORM (SQLAlchemy) projects.
 
 ## ✨ Features
 
@@ -14,6 +15,10 @@ hide:
 - REST API
 - Web service
 - Microservice
+- ORM (SQLAlchemy)
+- SQL databases (RDB)
+- Database migrations (Alembic)
+- PostgreSQL
 - Configuration
 - Tests
 - Build

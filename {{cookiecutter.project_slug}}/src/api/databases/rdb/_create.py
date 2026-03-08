@@ -1,25 +1,24 @@
-# -*- coding: utf-8 -*-
-
 from pydantic import validate_call
 from fastapi.concurrency import run_in_threadpool
 from sqlalchemy import Engine, URL
 from sqlalchemy.ext.asyncio import AsyncEngine
 from sqlalchemy_utils import database_exists, create_database
 
-from api.core.constants import WarnEnum
+from potato_util.constants import WarnEnum
+
 from api.core.models import BaseORM
 from api.logger import logger
 
 
 def register_orms() -> None:
     # Add all your ORM models here...
-    from api.endpoints.table_stat.model import TableStatORM
-    from api.endpoints.task.model import TaskORM
+    from api.endpoints.table_stat.model import TableStatORM  # noqa: F401
+    from api.endpoints.task.model import TaskORM  # noqa: F401
 
     return
 
 
-## Async
+# Async
 @validate_call(config={"arbitrary_types_allowed": True})
 async def async_create_db(
     async_engine: AsyncEngine, warn_mode: WarnEnum = WarnEnum.ERROR
@@ -85,7 +84,7 @@ async def async_create_structure(async_engine: AsyncEngine) -> None:
     logger.success(f"Successfully initialized '{_db_name}' database structure.")
 
 
-## Sync
+# Sync
 @validate_call(config={"arbitrary_types_allowed": True})
 def create_db(engine: Engine, warn_mode: WarnEnum = WarnEnum.ERROR) -> bool:
     """Create database if it doesn't exist.

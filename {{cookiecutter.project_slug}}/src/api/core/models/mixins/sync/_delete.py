@@ -1,13 +1,18 @@
-# -*- coding: utf-8 -*-
+import sys
+from typing import Any, cast
 
-from typing import List, Dict, Union, Any
+if sys.version_info >= (3, 11):
+    from typing import Self
+else:
+    from typing_extensions import Self
 
 from pydantic import validate_call
 from sqlalchemy import Delete, delete, Result
 from sqlalchemy.orm import DeclarativeBase, declarative_mixin, Session
-from sqlalchemy.exc import NoResultFound
+from sqlalchemy.exc import NoResultFound, DBAPIError
 
-from api.core.constants import WarnEnum
+from potato_util.constants import WarnEnum
+
 from api.config import config
 
 if config.db.dialect == "postgresql":
@@ -16,6 +21,34 @@ from api.core.exceptions import EmptyValueError, ForeignKeyError
 from api.logger import logger
 
 from ._read import ReadMixin
+
+
+def _raise_fk_error(err: DBAPIError) -> None:
+    """Raise ForeignKeyError if the error is a foreign key violation error.
+
+    Args:
+        err (DBAPIError, required): SQLAlchemy DBAPIError instance.
+
+    Raises:
+        ForeignKeyError: If the error is a foreign key violation error.
+    """
+
+    _err_orig = err.orig
+    if isinstance(_err_orig, ForeignKeyViolation):
+        _err_orig = cast(ForeignKeyViolation, _err_orig)
+        _detail = _err_orig.diag.message_detail
+        if _detail:
+            _detail = (
+                _detail.replace("Key ", "")
+                .replace('"', "'")
+                .replace(f"table '{config.db.prefix}", "'")
+            )
+        else:
+            _detail = "Foreign key violation error occurred!"
+
+        raise ForeignKeyError(_detail)
+
+    return
 
 
 @declarative_mixin
@@ -51,19 +84,14 @@ class DeleteMixin(ReadMixin):
 
             if isinstance(err, NoResultFound):
                 raise
-            elif hasattr(err, "orig") and isinstance(err.orig, ForeignKeyViolation):
-                _detail = (
-                    err.orig.diag.message_detail.replace("Key ", "")
-                    .replace('"', "'")
-                    .replace(f"table '{config.db.prefix}", "'")
-                )
-                raise ForeignKeyError(_detail)
+            if isinstance(err, DBAPIError):
+                _raise_fk_error(err=err)
 
             _message = f"Failed to delete `{self.__class__.__name__}` object (self) '{self.id}' ID from database!"
             if warn_mode == WarnEnum.ALWAYS:
                 logger.error(_message)
-            elif warn_mode == WarnEnum.ONCE:
-                logger.warning(_message)
+            elif warn_mode == WarnEnum.DEBUG:
+                logger.debug(_message)
 
             raise
 
@@ -93,7 +121,9 @@ class DeleteMixin(ReadMixin):
         """
 
         if orm_way:
-            _orm_object: cls = cls.get(session=session, id=id, warn_mode=warn_mode)
+            _orm_object = cast(
+                Self, cls.get(session=session, id=id, warn_mode=warn_mode)
+            )
             _orm_object.delete(
                 session=session,
                 auto_commit=auto_commit,
@@ -107,11 +137,12 @@ class DeleteMixin(ReadMixin):
                 if auto_commit:
                     session.commit()
 
+                _rowcount = getattr(_result, "rowcount", 0)
                 logger.debug(
-                    f"Deleted '{_result.rowcount}' row from `{cls.__name__}` ORM table."
+                    f"Deleted '{_rowcount}' row from `{cls.__name__}` ORM table."
                 )
 
-                if _result.rowcount == 0:
+                if _rowcount == 0:
                     raise NoResultFound(
                         f"Not found any `{cls.__name__}` object with '{id}' ID from database!"
                     )
@@ -122,13 +153,8 @@ class DeleteMixin(ReadMixin):
 
                 if isinstance(err, NoResultFound):
                     raise
-                elif hasattr(err, "orig") and isinstance(err.orig, ForeignKeyViolation):
-                    _detail = (
-                        err.orig.diag.message_detail.replace("Key ", "")
-                        .replace('"', "'")
-                        .replace(f"table '{config.db.prefix}", "'")
-                    )
-                    raise ForeignKeyError(_detail)
+                if isinstance(err, DBAPIError):
+                    _raise_fk_error(err=err)
 
                 _message = (
                     f"Failed to delete `{cls.__name__}` object '{id}' ID from database!"
@@ -147,7 +173,7 @@ class DeleteMixin(ReadMixin):
     def delete_by_ids(
         cls,
         session: Session,
-        ids: List[str],
+        ids: list[str],
         auto_commit: bool = False,
         warn_mode: WarnEnum = WarnEnum.DEBUG,
     ) -> None:
@@ -155,7 +181,7 @@ class DeleteMixin(ReadMixin):
 
         Args:
             session     (Session  , required): SQLAlchemy session for database connection.
-            ids         (List[str], required): List of IDs.
+            ids         (list[str], required): List of IDs.
             auto_commit (bool     , optional): Auto commit. Defaults to False.
             warn_mode   (WarnEnum , optional): Warning mode. Defaults to `WarnEnum.DEBUG`.
 
@@ -175,11 +201,12 @@ class DeleteMixin(ReadMixin):
             if auto_commit:
                 session.commit()
 
+            _rowcount = getattr(_result, "rowcount", 0)
             logger.debug(
-                f"Deleted '{_result.rowcount}' row(s) from `{cls.__name__}` ORM table."
+                f"Deleted '{_rowcount}' row(s) from `{cls.__name__}` ORM table."
             )
 
-            if _result.rowcount == 0:
+            if _rowcount == 0:
                 raise NoResultFound(
                     f"Not found any `{cls.__name__}` objects with '{ids}' IDs from database!"
                 )
@@ -190,13 +217,8 @@ class DeleteMixin(ReadMixin):
 
             if isinstance(err, NoResultFound):
                 raise
-            elif hasattr(err, "orig") and isinstance(err.orig, ForeignKeyViolation):
-                _detail = (
-                    err.orig.diag.message_detail.replace("Key ", "")
-                    .replace('"', "'")
-                    .replace(f"table '{config.db.prefix}", "'")
-                )
-                raise ForeignKeyError(_detail)
+            if isinstance(err, DBAPIError):
+                _raise_fk_error(err=err)
 
             _message = f"Failed to delete `{cls.__name__}` objects by '{ids}' IDs from database!"
             if warn_mode == WarnEnum.ALWAYS:
@@ -213,7 +235,7 @@ class DeleteMixin(ReadMixin):
     def delete_objects(
         cls,
         session: Session,
-        orm_objects: List[DeclarativeBase],
+        orm_objects: list[DeclarativeBase],
         auto_commit: bool = False,
         warn_mode: WarnEnum = WarnEnum.DEBUG,
     ) -> None:
@@ -221,7 +243,7 @@ class DeleteMixin(ReadMixin):
 
         Args:
             session     (Session              , required): SQLAlchemy
-            objects     (List[DeclarativeBase], required): List of ORM objects.
+            objects     (list[DeclarativeBase], required): List of ORM objects.
             auto_commit (bool                 , optional): Auto commit. Defaults to False.
             warn_mode   (WarnEnum             , optional): Warning mode. Defaults to `WarnEnum.DEBUG`.
 
@@ -231,11 +253,13 @@ class DeleteMixin(ReadMixin):
             Exception      : If failed to delete ORM objects from database.
         """
 
-        if not orm_objects:
+        _orm_objects = cast(list[DeclarativeBase | Self], orm_objects)
+
+        if not _orm_objects:
             raise EmptyValueError("No ORM objects provided to delete!")
 
         try:
-            for _orm_object in orm_objects:
+            for _orm_object in _orm_objects:
                 session.delete(_orm_object)
 
             if auto_commit:
@@ -247,13 +271,8 @@ class DeleteMixin(ReadMixin):
 
             if isinstance(err, NoResultFound):
                 raise
-            elif hasattr(err, "orig") and isinstance(err.orig, ForeignKeyViolation):
-                _detail = (
-                    err.orig.diag.message_detail.replace("Key ", "")
-                    .replace('"', "'")
-                    .replace(f"table '{config.db.prefix}", "'")
-                )
-                raise ForeignKeyError(_detail)
+            if isinstance(err, DBAPIError):
+                _raise_fk_error(err=err)
 
             _message = f"Failed to delete `{cls.__name__}` objects from database!"
             if warn_mode == WarnEnum.ALWAYS:
@@ -270,7 +289,7 @@ class DeleteMixin(ReadMixin):
     def delete_by_where(
         cls,
         session: Session,
-        where: Union[List[Dict[str, Any]], Dict[str, Any]],
+        where: list[dict[str, Any]] | dict[str, Any],
         orm_way: bool = False,
         auto_commit: bool = False,
         allow_no_result: bool = False,
@@ -279,24 +298,27 @@ class DeleteMixin(ReadMixin):
         """Delete ORM objects from database by filter conditions.
 
         Args:
-            session         (Session                    , required): SQLAlchemy session for database connection.
-            where           (Union[List[Dict[str, Any]],
-                                   Dict[str, Any]]      , required): List of filter conditions.
-            orm_way         (bool                       , optional): Use ORM way to delete objects. Defaults to False.
-            auto_commit     (bool                       , optional): Auto commit. Defaults to False.
-            allow_no_result (bool                       , optional): Allow no result found. Defaults to False.
-            warn_mode       (WarnEnum                   , optional): Warning mode. Defaults to `WarnEnum.DEBUG`.
+            session         (Session               , required): SQLAlchemy session for database connection.
+            where           (list[dict[str, Any]] |
+                                     dict[str, Any], required): List of filter conditions.
+            orm_way         (bool                  , optional): Use ORM way to delete objects. Defaults to False.
+            auto_commit     (bool                  , optional): Auto commit. Defaults to False.
+            allow_no_result (bool                  , optional): Allow no result found. Defaults to False.
+            warn_mode       (WarnEnum              , optional): Warning mode. Defaults to `WarnEnum.DEBUG`.
 
         Raises:
             Exception: If failed to delete ORM objects from database by filter conditions.
         """
 
         if orm_way:
-            _orm_objects: List[cls] = cls.select_by_where(
-                session=session,
-                where=where,
-                disable_limit=True,
-                warn_mode=warn_mode,
+            _orm_objects = cast(
+                list[DeclarativeBase],
+                cls.select_by_where(
+                    session=session,
+                    where=where,
+                    disable_limit=True,
+                    warn_mode=warn_mode,
+                ),
             )
 
             if _orm_objects:
@@ -313,17 +335,18 @@ class DeleteMixin(ReadMixin):
         else:
             try:
                 _stmt: Delete = delete(cls)
-                _stmt = cls._build_where_stmt(stmt=_stmt, where=where)
+                _stmt = cast(Delete, cls._build_where(stmt=_stmt, where=where))
                 _result: Result = session.execute(_stmt)
 
                 if auto_commit:
                     session.commit()
 
+                _rowcount = getattr(_result, "rowcount", 0)
                 logger.debug(
-                    f"Deleted '{_result.rowcount}' row(s) from `{cls.__name__}` ORM table."
+                    f"Deleted '{_rowcount}' row(s) from `{cls.__name__}` ORM table."
                 )
 
-                if (not allow_no_result) and (_result.rowcount == 0):
+                if (not allow_no_result) and (_rowcount == 0):
                     raise NoResultFound(
                         f"Not found any `{cls.__name__}` objects by '{where}' filter from database!"
                     )
@@ -334,13 +357,8 @@ class DeleteMixin(ReadMixin):
 
                 if isinstance(err, NoResultFound):
                     raise
-                elif hasattr(err, "orig") and isinstance(err.orig, ForeignKeyViolation):
-                    _detail = (
-                        err.orig.diag.message_detail.replace("Key ", "")
-                        .replace('"', "'")
-                        .replace(f"table '{config.db.prefix}", "'")
-                    )
-                    raise ForeignKeyError(_detail)
+                if isinstance(err, DBAPIError):
+                    _raise_fk_error(err=err)
 
                 _message = f"Failed to delete `{cls.__name__}` object by '{where}' filter from database!"
                 if warn_mode == WarnEnum.ALWAYS:
@@ -378,20 +396,16 @@ class DeleteMixin(ReadMixin):
             if auto_commit:
                 session.commit()
 
+            _rowcount = getattr(_result, "rowcount", 0)
             logger.debug(
-                f"Deleted '{_result.rowcount}' row(s) from `{cls.__name__}` ORM table."
+                f"Deleted '{_rowcount}' row(s) from `{cls.__name__}` ORM table."
             )
         except Exception as err:
             if auto_commit:
                 session.rollback()
 
-            if hasattr(err, "orig") and isinstance(err.orig, ForeignKeyViolation):
-                _detail = (
-                    err.orig.diag.message_detail.replace("Key ", "")
-                    .replace('"', "'")
-                    .replace(f"table '{config.db.prefix}", "'")
-                )
-                raise ForeignKeyError(_detail)
+            if isinstance(err, DBAPIError):
+                _raise_fk_error(err=err)
 
             _message = f"Failed to delete all `{cls.__name__}` objects from database!"
             if warn_mode == WarnEnum.ALWAYS:

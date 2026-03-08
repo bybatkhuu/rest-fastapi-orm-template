@@ -1,0 +1,29 @@
+db:
+  dialect: "postgresql"
+  driver: "psycopg"
+  host: "localhost"
+  port: 5432
+  username: "{{cookiecutter.project_abbr}}_admin"
+  password: "{{cookiecutter.env_prefix}}DB_PASSWORD123" # This should be read from an environment variable! # pragma: allowlist secret
+  database: "{{cookiecutter.project_abbr}}_db"
+  # dsn_url: "postgresql+psycopg://{{cookiecutter.project_abbr}}_admin:{{cookiecutter.env_prefix}}DB_PASSWORD123@localhost:5432/{{cookiecutter.project_abbr}}_db" # This should be read from an environment variable! # pragma: allowlist secret
+  # read_host: "localhost"
+  # read_port: 5432
+  # read_username: "{{cookiecutter.project_abbr}}_admin"
+  # read_password: "{{cookiecutter.env_prefix}}DB_PASSWORD123" # This should be read from an environment variable! # pragma: allowlist secret
+  # read_database: "{{cookiecutter.project_abbr}}_db"
+  # read_dsn_url: "postgresql+psycopg://{{cookiecutter.project_abbr}}_admin:{{cookiecutter.env_prefix}}DB_PASSWORD123@localhost:5432/{{cookiecutter.project_abbr}}_db" # This should be read from an environment variable! # pragma: allowlist secret
+  connect_args:
+    sslmode: "prefer"
+  prefix: "{{cookiecutter.project_abbr}}_"
+  max_try_connect: 3
+  retry_after: 4
+  echo_sql: false
+  echo_pool: false
+  pool_size: 10 # 0 means no limit
+  max_overflow: 10 # pool_size + max_overflow = max number of pools allowed
+  pool_recycle: 10800 # 3 hours, -1 means no timeout
+  pool_timeout: 30 # 30 seconds
+  select_limit: 100
+  select_max_limit: 100000
+  select_is_desc: true

@@ -1,9 +1,15 @@
-# -*- coding: utf-8 -*-
-
+import sys
 import json
 from uuid import UUID
 from datetime import datetime
-from typing import Union, List, Dict, Any, Optional, Sequence
+from typing import Any, cast
+from collections.abc import Sequence
+
+if sys.version_info >= (3, 11):
+    from typing import Self
+else:
+    from typing_extensions import Self
+
 
 from pydantic import validate_call
 from sqlalchemy import (
@@ -17,7 +23,6 @@ from sqlalchemy import (
     inspect,
     Select,
     select,
-    Insert,
     Update,
     Delete,
     Subquery,
@@ -31,8 +36,9 @@ from sqlalchemy.orm import (
 )
 from sqlalchemy.util import ReadOnlyProperties
 
-from api.core.constants import WarnEnum
-from api.core import utils
+from potato_util.constants import WarnEnum
+from potato_util.generator import gen_unique_id
+
 from api.config import config
 from api.logger import logger
 
@@ -109,27 +115,30 @@ class BaseMixin(TimestampMixin, IdStrMixin):
         """
 
         _prefix = cls.__name__[0:3]
-        _id = utils.gen_unique_id(prefix=_prefix)
+        _id = gen_unique_id(prefix=_prefix)
         return _id
 
     @validate_call
     def to_dict(
         self,
-        excludes: Optional[List[str]] = None,
-        load_relations: Optional[List[str]] = None,
-    ) -> Dict[str, Any]:
+        excludes: list[str] | None = None,
+        load_relations: list[str] | None = None,
+    ) -> dict[str, Any]:
         """Convert ORM object to dictionary.
 
         Args:
-            excludes       (Optional[List[str]], optional): List of attributes to exclude. Defaults to None.
-            load_relations (Optional[List[str]], optional): List of relationships to include. Defaults to None.
+            excludes       (list[str] | None, optional): List of attributes to exclude. Defaults to None.
+            load_relations (list[str] | None, optional): List of relationships to include. Defaults to None.
 
         Returns:
-            Dict[str, Any]: Dictionary of ORM object.
+            dict[str, Any]: Dictionary of ORM object.
         """
 
         _dict = {}
-        _columns: ReadOnlyProperties = inspect(self).mapper.column_attrs
+        _inspect = inspect(self)
+        assert _inspect is not None, "Failed to inspect ORM object!"
+
+        _columns: ReadOnlyProperties = _inspect.mapper.column_attrs
         for _column in _columns:
             _column_name = _column.key
             if (not excludes) or (_column_name not in excludes):
@@ -143,9 +152,9 @@ class BaseMixin(TimestampMixin, IdStrMixin):
                         _dict[_relation] = []
                         for _item in _attr:
                             if isinstance(_item, DeclarativeBase):
-                                _dict[_relation].append(_item.to_dict())
+                                _dict[_relation].append(cast(Self, _item).to_dict())
                     elif isinstance(_attr, DeclarativeBase):
-                        _dict[_relation] = _attr.to_dict()
+                        _dict[_relation] = cast(Self, _attr).to_dict()
                     elif _attr is None:
                         _dict[_relation] = None
                     else:
@@ -156,14 +165,14 @@ class BaseMixin(TimestampMixin, IdStrMixin):
     @validate_call
     def to_json(
         self,
-        excludes: Optional[List[str]] = None,
-        load_relations: Optional[List[str]] = None,
+        excludes: list[str] | None = None,
+        load_relations: list[str] | None = None,
     ) -> str:
         """Convert ORM object to JSON string.
 
         Args:
-            excludes       (Optional[List[str]], optional): List of attributes to exclude. Defaults to None.
-            load_relations (Optional[List[str]], optional): List of relationships to include. Defaults to None.
+            excludes       (list[str] | None, optional): List of attributes to exclude. Defaults to None.
+            load_relations (list[str] | None, optional): List of relationships to include. Defaults to None.
 
         Returns:
             str: JSON string of ORM object.
@@ -180,23 +189,29 @@ class BaseMixin(TimestampMixin, IdStrMixin):
     @validate_call(config={"arbitrary_types_allowed": True})
     def to_dict_list(
         cls,
-        orm_objects: List[DeclarativeBase],
-        excludes: Optional[List[str]] = None,
-        load_relations: Optional[List[str]] = None,
-    ) -> List[Dict[str, Any]]:
+        orm_objects: list[DeclarativeBase],
+        excludes: list[str] | None = None,
+        load_relations: list[str] | None = None,
+    ) -> list[dict[str, Any]]:
         """Convert list of ORM objects to list of dictionaries.
 
         Args:
-            orm_objects    (List[DeclarativeBase], required): List of ORM objects.
-            excludes       (Optional[List[str]]  , optional): List of attributes to exclude. Defaults to None.
-            load_relations (Optional[List[str]]  , optional): List of relationships to include. Defaults to None.
+            orm_objects    (list[DeclarativeBase], required): List of ORM objects.
+            excludes       (list[str] | None, optional): List of attributes to exclude. Defaults to None.
+            load_relations (list[str] | None, optional): List of relationships to include. Defaults to None.
 
         Returns:
-            List[Dict[str, Any]]: List of dictionaries from ORM objects.
+            list[dict[str, Any]]: List of dictionaries from ORM objects.
         """
 
+        _orm_objects = cast(list[DeclarativeBase | Self], orm_objects)
+
         _dict_list = []
-        for _orm_object in orm_objects:
+        for _orm_object in _orm_objects:
+            assert isinstance(
+                _orm_object, cls
+            ), f"`orm_objects` list argument has invalid type {type(_orm_object)} of item!"
+
             _dict_list.append(
                 _orm_object.to_dict(excludes=excludes, load_relations=load_relations)
             )
@@ -205,14 +220,14 @@ class BaseMixin(TimestampMixin, IdStrMixin):
 
     @classmethod
     @validate_call
-    def from_json(cls, json_str: str) -> DeclarativeBase:
+    def from_json(cls, json_str: str) -> Self:
         """Convert JSON string to ORM object.
 
         Args:
             json_str (str, required): JSON string.
 
         Returns:
-            DeclarativeBase: ORM object.
+            Self: ORM object.
         """
 
         _dict = json.loads(json_str)
@@ -233,21 +248,20 @@ class BaseMixin(TimestampMixin, IdStrMixin):
     @validate_call(config={"arbitrary_types_allowed": True})
     def _build_where(
         cls,
-        stmt: Union[Select, Insert, Update, Delete],
-        where: Union[List[Dict[str, Any]], Dict[str, Any]],
-    ) -> Union[Select, Insert, Update, Delete]:
+        stmt: Select | Update | Delete,
+        where: list[dict[str, Any]] | dict[str, Any],
+    ) -> Select | Update | Delete:
         """Build SQLAlchemy SQL statement with `where` filter conditions.
 
         Args:
-            stmt  (Union[Select, Insert, Update, Delete], required): SQLAlchemy SQL statement.
-            where (Union[List[Dict[str, Any]],
-                              Dict[str, Any]]           , required): List of filter conditions
+            stmt  (Select | Update | Delete    , required): SQLAlchemy SQL statement.
+            where (list[dict[str, Any]] | dict[str, Any], required): List of filter conditions
 
         Raises:
             ValueError: If `column` or `value` key doesn't exist in `where` filter.
 
         Returns:
-            Union[Select, Insert, Update, Delete]: Built SQLAlchemy SQL statement.
+            Select | Update | Delete: Built SQLAlchemy SQL statement.
         """
 
         if isinstance(where, dict):
@@ -299,24 +313,24 @@ class BaseMixin(TimestampMixin, IdStrMixin):
     @validate_call
     def _build_select(
         cls,
-        where: Union[List[Dict[str, Any]], Dict[str, Any], None] = None,
+        where: list[dict[str, Any]] | dict[str, Any] | None = None,
         offset: int = 0,
         limit: int = config.db.select_limit,
-        order_by: Union[List[str], str, None] = None,
+        order_by: list[str] | str | None = None,
         is_desc: bool = True,
-        joins: Optional[List[str]] = None,
+        joins: list[str] | None = None,
         disable_limit: bool = False,
     ) -> Select:
         """Build SQLAlchemy select statement for ORM object.
 
         Args:
-            where          (Union[List[Dict[str, Any]],
-                                  Dict[str, Any], None], optional): List of filter conditions. Defaults to None.
+            where          (list[dict[str, Any]] |
+                                  dict[str, Any] | None, optional): List of filter conditions. Defaults to None.
             offset         (int                        , optional): Offset number. Defaults to 0.
             limit          (int                        , optional): Limit number. Defaults to `config.db.select_limit`.
-            order_by       (Union[List[str], str, None], optional): List of order by columns. Defaults to None.
+            order_by       (list[str] | str | None     , optional): List of order by columns. Defaults to None.
             is_desc        (bool                       , optional): Is sort descending or ascending. Defaults to True.
-            joins          (Optional[List[str]]        , optional): List of joinable relationships. Defaults to None.
+            joins          (list[str] | None           , optional): List of joinable relationships. Defaults to None.
             disable_limit  (bool                       , optional): Disable select limit. Defaults to False.
 
         Returns:
@@ -327,11 +341,11 @@ class BaseMixin(TimestampMixin, IdStrMixin):
         if not is_desc:
             _sort_direct = asc
 
-        ## Deffered join to improve performance:
+        # Deffered join to improve performance:
         # Subquery:
-        _sub_query: Select = select(cls.id)
+        _sub_select: Select = select(cls.id)
         if where:
-            _sub_query = cls._build_where(stmt=_sub_query, where=where)
+            _sub_select = cast(Select, cls._build_where(stmt=_sub_select, where=where))
 
         if order_by:
             if isinstance(order_by, str):
@@ -340,17 +354,17 @@ class BaseMixin(TimestampMixin, IdStrMixin):
             if isinstance(order_by, list):
                 for _order_by in order_by:
                     if hasattr(cls, _order_by):
-                        _sub_query = _sub_query.order_by(
+                        _sub_select = _sub_select.order_by(
                             _sort_direct(getattr(cls, _order_by))
                         )
 
-        _sub_query: Select = _sub_query.order_by(_sort_direct(cls.id))
+        _sub_select: Select = _sub_select.order_by(_sort_direct(cls.id))
 
         if not disable_limit:
-            _sub_query = _sub_query.limit(limit).offset(offset)
+            _sub_select = _sub_select.limit(limit).offset(offset)
 
         # Make into subquery:
-        _sub_query: Subquery = _sub_query.subquery()
+        _sub_query: Subquery = _sub_select.subquery()
 
         # Main query:
         _stmt: Select = select(cls).join(_sub_query, cls.id == _sub_query.c.id)

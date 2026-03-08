@@ -1,6 +1,6 @@
 services:
   db:
-    image: postgres:16.6-bookworm
+    image: postgres:18.3-trixie
     restart: unless-stopped
     environment:
       TERM: ${TERM:-xterm}
@@ -10,11 +10,12 @@ services:
       POSTGRES_PASSWORD: "{% raw %}${{% endraw %}{{cookiecutter.env_prefix}}DB_PASSWORD:-{{cookiecutter.env_prefix}}DB_PASSWORD123}"
       POSTGRES_DB: {% raw %}${{% endraw %}{{cookiecutter.env_prefix}}DB_DATABASE:-{{cookiecutter.project_abbr}}_db}
     volumes:
-      - "db-data:/var/lib/postgresql/data"
+      - "./volumes/storage/postgresql/data:/var/lib/postgresql"
+    command: ["-p", "{% raw %}${{% endraw %}{{cookiecutter.env_prefix}}DB_PORT:-5432}"]
     tty: true
 
   api:
-    image: {{cookiecutter.docker_registry}}/{{cookiecutter.docker_repo_name}}:latest
+    image: {{cookiecutter.docker_registry}}/{{cookiecutter.docker_repo_name}}:{{cookiecutter.version}}
     build:
       context: .
     depends_on:
@@ -32,14 +33,9 @@ services:
       - path: .env
         required: false
     volumes:
-      - "api-logs:{% raw %}${{% endraw %}{{cookiecutter.env_prefix}}API_LOGS_DIR:-/var/log/{{cookiecutter.project_slug}}}"
-      - "api-data:{% raw %}${{% endraw %}{{cookiecutter.env_prefix}}API_DATA_DIR:-/var/lib/{{cookiecutter.project_slug}}}"
+      - "./volumes/configs/{{cookiecutter.project_slug}}:{% raw %}${{% endraw %}{{cookiecutter.env_prefix}}API_CONFIGS_DIR:-/etc/{{cookiecutter.project_slug}}}"
+      - "./volumes/storage/{{cookiecutter.project_slug}}/logs:{% raw %}${{% endraw %}{{cookiecutter.env_prefix}}API_LOGS_DIR:-/var/log/{{cookiecutter.project_slug}}}"
+      - "./volumes/storage/{{cookiecutter.project_slug}}/data:{% raw %}${{% endraw %}{{cookiecutter.env_prefix}}API_DATA_DIR:-/var/lib/{{cookiecutter.project_slug}}}"
     ports:
       - "{% raw %}${{% endraw %}{{cookiecutter.env_prefix}}API_PORT:-8000}:{% raw %}${{% endraw %}{{cookiecutter.env_prefix}}API_PORT:-8000}"
     tty: true
-
-
-volumes:
-  db-data:
-  api-logs:
-  api-data:

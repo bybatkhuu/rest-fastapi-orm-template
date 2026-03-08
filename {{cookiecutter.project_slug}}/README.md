@@ -18,6 +18,7 @@
 - Microservice
 - ORM (SQLAlchemy)
 - SQL databases (RDB)
+- Database migrations (Alembic)
 - PostgreSQL
 - Configuration
 - Tests
@@ -44,11 +45,11 @@ For **standalone** runtime:
 - Install **Python (>= v{{cookiecutter.python_version}})** and **pip (>= 23)**:
     - **[RECOMMENDED] [Miniconda (v3)](https://www.anaconda.com/docs/getting-started/miniconda/install)**
     - *[arm64/aarch64] [Miniforge (v3)](https://github.com/conda-forge/miniforge)*
-    - *[Python virutal environment] [venv](https://docs.python.org/3/library/venv.html)*
-- Install **PostrgreSQL (>= v16)**:
+    - *[Python virtual environment] [venv](https://docs.python.org/3/library/venv.html)*
+- Install **PostrgreSQL (>= v18)**:
     - **[RECOMMENDED] [Docker image](https://hub.docker.com/_/postgres)** (postgres)
     - *[Packages and installers](https://www.postgresql.org/download)*
-- Install **libpq (>= v16)** for **psycopg[c]**:
+- Install **libpq (>= v17)** for **psycopg[c]**:
     - **[RECOMMENDED] Miniconda - [libpq](https://anaconda.org/anaconda/libpq)**
     - Debian/Ubuntu - **libpq-dev**
     - MacOS - **[libpq](https://formulae.brew.sh/formula/libpq)**
@@ -56,7 +57,7 @@ For **standalone** runtime:
 [OPTIONAL] For **DEVELOPMENT** environment:
 
 - Install [**git**](https://git-scm.com/downloads)
-- Setup an [**SSH key**](https://docs.github.com/en/github/authenticating-to-github/connecting-to-github-with-ssh) ([video tutorial](https://www.youtube.com/watch?v=snCP3c7wXw0))
+- Setup an [**SSH key**](https://docs.github.com/en/github/authenticating-to-github/connecting-to-github-with-ssh)
 
 ### 2. 📥 Download or clone the repository
 
@@ -125,29 +126,16 @@ pip install -r ./requirements/requirements.arm64.txt
 
 [NOTE] Please, check **[environment variables](#-environment-variables)** section for more details.
 
-#### **OPTION A.** **[RECOMMENDED]** For **docker** runtime **[5.A]**
-
 ```sh
 # Copy '.env.example' file to '.env' file:
 cp -v ./.env.example ./.env
-
 # Edit environment variables to fit in your environment:
 nano ./.env
 ```
 
-#### **OPTION B.** For **standalone** runtime **[5.B ~ 5.F]**
-
-```sh
-# Copy '.env.example' file to '.env' file:
-cp -v ./.env.example ./src/.env
-
-# Edit environment variables to fit in your environment:
-nano ./src/.env
-```
-
 ### 5. 🏁 Start the server
 
-[NOTE] Follow the one of below instructions based on your environment **[A, B, C, D, E, F]**:
+[NOTE] Follow the one of below instructions based on your environment **[A, B, C, D, E]**:
 
 #### Docker runtime
 
@@ -155,29 +143,25 @@ nano ./src/.env
 
 ```sh
 ## 1. Configure 'compose.override.yml' file.
-
 # Copy 'compose.override.[ENV].yml' file to 'compose.override.yml' file:
 cp -v ./templates/compose/compose.override.[ENV].yml ./compose.override.yml
 # For example, DEVELOPMENT environment:
 cp -v ./templates/compose/compose.override.dev.yml ./compose.override.yml
 # For example, STATGING or PRODUCTION environment:
 cp -v ./templates/compose/compose.override.prod.yml ./compose.override.yml
-
 # Edit 'compose.override.yml' file to fit in your environment:
 nano ./compose.override.yml
-
 
 ## 2. Check docker compose configuration is valid:
 ./compose.sh validate
 # Or:
 docker compose config
 
-
 ## 3. Start docker compose:
 ./compose.sh start -l
 # Or:
 docker compose up -d --remove-orphans --force-recreate && \
-    docker compose logs -f --tail 100
+    docker compose logs -f -n 100
 ```
 
 #### Standalone runtime
@@ -187,10 +171,15 @@ docker compose up -d --remove-orphans --force-recreate && \
 Run `alembic migration` to create or update `database schema` to the latest version:
 
 ```sh
+# 1. Create a symbolic link to '.env' file in './src/.env' file:
+ln -s -v ../.env ./src/.env
+
+# 2. Run alembic migration:
 ./scripts/migrate.sh up
 # Or:
 cd ./src
 alembic -x data=true upgrade head
+cd ..
 ```
 
 **OPTION B.** Run with **PM2**:
@@ -199,69 +188,63 @@ alembic -x data=true upgrade head
 
 ```sh
 ## 1. Configure PM2 configuration file.
-
 # Copy example PM2 configuration file:
 cp -v ./pm2-process.json.example ./pm2-process.json
-
 # Edit PM2 configuration file to fit in your environment:
 nano ./pm2-process.json
-
 
 ## 2. Start PM2 process:
 pm2 start ./pm2-process.json && \
     pm2 logs --lines 50 {{cookiecutter.project_abbr}}
 ```
 
-**OPTION C.** Run server as **python script**:
-
-```sh
-cd ./src
-python -u ./main.py
-```
-
-**OPTION D.** Run server as **python module**:
+**OPTION C.** Run server as **python module**:
 
 ```sh
 python -u -m src.api
+```
 
-# Or:
-cd ./src
+**OPTION D.** Run with **uvicorn** cli:
+
+```sh
+uvicorn src.api.main:app --host=[BIND_HOST] --port=[PORT] --no-access-log --no-server-header --proxy-headers --forwarded-allow-ips="*"
+# For example:
+uvicorn src.api.main:app --host="0.0.0.0" --port=8000 --no-access-log --no-server-header --proxy-headers --forwarded-allow-ips="*"
+
+# For DEVELOPMENT:
+uvicorn src.api.main:app --host="0.0.0.0" --port=8000 --no-access-log --no-server-header --proxy-headers --forwarded-allow-ips="*" --reload --reload-dir=./src
+```
+
+**OPTION E.** Run with **fastapi** cli:
+
+```sh
+fastapi run src/api/main.py --host=[BIND_HOST] --port=[PORT] --forwarded-allow-ips="*"
+# For example:
+fastapi run src/api/main.py --port=8000 --forwarded-allow-ips="*"
+
+# For DEVELOPMENT:
+fastapi dev src/api/main.py --host="0.0.0.0" --port=8000 --forwarded-allow-ips="*"
+```
+
+#### Run directly from src directory
+
+```sh
+# 1. Enter into src directory:
+cd src
+
+# 2. Run server:
+# 2.a. Run as python module:
 python -u -m api
-```
 
-**OPTION E.** Run with **uvicorn** cli:
-
-```sh
-uvicorn src.main:app --host=[BIND_HOST] --port=[PORT] --no-access-log --no-server-header --proxy-headers --forwarded-allow-ips="*"
-# For example:
-uvicorn src.main:app --host="0.0.0.0" --port=8000 --no-access-log --no-server-header --proxy-headers --forwarded-allow-ips="*"
-
-
-# Or:
-cd ./src
-uvicorn main:app --host="0.0.0.0" --port=8000 --no-access-log --no-server-header --proxy-headers --forwarded-allow-ips="*"
-
+# 2.b. Or run with uvicorn cli:
+uvicorn api.main:app --host="0.0.0.0" --port=8000 --no-access-log --no-server-header --proxy-headers --forwarded-allow-ips="*"
 # For DEVELOPMENT:
-uvicorn main:app --host="0.0.0.0" --port=8000 --no-access-log --no-server-header --proxy-headers --forwarded-allow-ips="*" --reload --reload-include="*.yml" --reload-include=".env"
-```
+uvicorn api.main:app --host="0.0.0.0" --port=8000 --no-access-log --no-server-header --proxy-headers --forwarded-allow-ips="*" --reload
 
-**OPTION F.** Run with **fastapi** cli:
-
-```sh
-fastpi run src/main.py --host=[BIND_HOST] --port=[PORT]
-# For example:
-fastapi run src/main.py --port=8000
-
+# 2.c. Or run with fastapi cli:
+fastapi run api/main.py --port=8000 --forwarded-allow-ips="*"
 # For DEVELOPMENT:
-fastapi dev src/main.py --host="0.0.0.0" --port=8000
-
-
-# Or:
-cd ./src
-fastapi run --port=8000
-
-# For DEVELOPMENT:
-fastapi dev --host="0.0.0.0" --port=8000
+fastapi dev api/main.py --host="0.0.0.0" --port=8000 --forwarded-allow-ips="*"
 ```
 
 ### 6. ✅ Check server is running
@@ -307,56 +290,50 @@ pm2 stop ./pm2-process.json && \
 
 ### 🌎 Environment Variables
 
-You can use the following environment variables to configure:
-
-[**`.env.example`**](https://github.com/{{cookiecutter.repo_owner}}/{{cookiecutter.repo_name}}/blob/main/.env.example):
+[**`.env.example`**](./.env.example):
 
 ```sh
 ## --- Environment variable --- ##
 ENV=LOCAL
 DEBUG=false
-# TZ=Asia/Seoul
+# TZ={{cookiecutter.timezone}}
+# PYTHONDONTWRITEBYTECODE=1
 
 
 ## --- DB configs --- ##
-{{cookiecutter.env_prefix}}DB_HOST=localhost
+{{cookiecutter.env_prefix}}DB_HOST=localhost # For local docker-compose: db
 {{cookiecutter.env_prefix}}DB_PORT=5432
 {{cookiecutter.env_prefix}}DB_USERNAME={{cookiecutter.project_abbr}}_admin
-{{cookiecutter.env_prefix}}DB_PASSWORD="{{cookiecutter.env_prefix}}DB_PASSWORD123" # !!! CHANGE THIS TO RANDOM PASSWORD !!!
+{{cookiecutter.env_prefix}}DB_PASSWORD="{{cookiecutter.env_prefix}}DB_PASSWORD123" # !!! CHANGE THIS TO RANDOM PASSWORD !!! # pragma: allowlist secret
 {{cookiecutter.env_prefix}}DB_DATABASE={{cookiecutter.project_abbr}}_db
-# {{cookiecutter.env_prefix}}DB_DSN_URL="postgresql+psycopg://{{cookiecutter.project_abbr}}_admin:{{cookiecutter.env_prefix}}DB_PASSWORD123@localhost:5432/{{cookiecutter.project_abbr}}_db" # !!! CHANGE THIS TO REAL DSN URL !!!
+# {{cookiecutter.env_prefix}}DB_DSN_URL="postgresql+psycopg://{{cookiecutter.project_abbr}}_admin:{{cookiecutter.env_prefix}}DB_PASSWORD123@localhost:5432/{{cookiecutter.project_abbr}}_db" # !!! CHANGE THIS TO REAL DSN URL !!! # pragma: allowlist secret
 
 # {{cookiecutter.env_prefix}}DB_READ_HOST=localhost
 # {{cookiecutter.env_prefix}}DB_READ_PORT=5432
 # {{cookiecutter.env_prefix}}DB_READ_USERNAME={{cookiecutter.project_abbr}}_admin
-# {{cookiecutter.env_prefix}}DB_READ_PASSWORD="{{cookiecutter.env_prefix}}DB_PASSWORD123" # !!! CHANGE THIS TO RANDOM PASSWORD !!!
+# {{cookiecutter.env_prefix}}DB_READ_PASSWORD="{{cookiecutter.env_prefix}}DB_PASSWORD123" # !!! CHANGE THIS TO RANDOM PASSWORD !!! # pragma: allowlist secret
 # {{cookiecutter.env_prefix}}DB_READ_DATABASE={{cookiecutter.project_abbr}}_db
-# {{cookiecutter.env_prefix}}DB_READ_DSN_URL="postgresql+psycopg://{{cookiecutter.project_abbr}}_admin:{{cookiecutter.env_prefix}}DB_PASSWORD123@localhost:5432/{{cookiecutter.project_abbr}}_db" # !!! CHANGE THIS TO REAL DSN URL !!!
+# {{cookiecutter.env_prefix}}DB_READ_DSN_URL="postgresql+psycopg://{{cookiecutter.project_abbr}}_admin:{{cookiecutter.env_prefix}}DB_PASSWORD123@localhost:5432/{{cookiecutter.project_abbr}}_db" # !!! CHANGE THIS TO REAL DSN URL !!! # pragma: allowlist secret
 
 
 ## -- API configs -- ##
 {{cookiecutter.env_prefix}}API_PORT=8000
+# {{cookiecutter.env_prefix}}API_CONFIGS_DIR="/etc/{{cookiecutter.project_slug}}"
 # {{cookiecutter.env_prefix}}API_LOGS_DIR="/var/log/{{cookiecutter.project_slug}}"
 # {{cookiecutter.env_prefix}}API_DATA_DIR="/var/lib/{{cookiecutter.project_slug}}"
+# {{cookiecutter.env_prefix}}API_TMP_DIR="/tmp/{{cookiecutter.project_slug}}"
 # {{cookiecutter.env_prefix}}API_VERSION="1"
 # {{cookiecutter.env_prefix}}API_PREFIX="/api/v{api_version}"
 # {{cookiecutter.env_prefix}}API_DOCS_ENABLED=true
 # {{cookiecutter.env_prefix}}API_DOCS_OPENAPI_URL="{api_prefix}/openapi.json"
 # {{cookiecutter.env_prefix}}API_DOCS_DOCS_URL="{api_prefix}/docs"
 # {{cookiecutter.env_prefix}}API_DOCS_REDOC_URL="{api_prefix}/redoc"
-```
 
-### 🔧 Command arguments
 
-You can customize the command arguments to debug or run the service with different commands.
 
-[**`compose.override.yml`**](https://github.com/{{cookiecutter.repo_owner}}/{{cookiecutter.repo_name}}/blob/main/templates/compose/compose.override.dev.yml):
-
-```yml
-    command: ["/bin/bash"]
-    command: ["-b", "pwd && ls -al && /bin/bash"]
-    command: ["-b", "python -u -m api"]
-    command: ["-b", "uvicorn main:app --host=0.0.0.0 --port={% raw %}${{% endraw %}{{cookiecutter.env_prefix}}API_PORT:-8000} --no-access-log --no-server-header --proxy-headers --forwarded-allow-ips='*'"]
+## -- Extra -- ##
+# {{cookiecutter.env_prefix}}DB_ECHO_SQL=false
+# {{cookiecutter.env_prefix}}DB_ECHO_POOL=false
 ```
 
 ---
@@ -399,7 +376,7 @@ pip install -r ./requirements/requirements.docs.txt
 # Serve documentation locally (for development):
 ./scripts/docs.sh
 # Or:
-mkdocs serve
+mkdocs serve -a 0.0.0.0:8000 --livereload
 
 # Or build documentation:
 ./scripts/docs.sh -b
@@ -409,52 +386,7 @@ mkdocs build
 
 ## 📚 Documentation
 
-- [Docs](https://github.com/{{cookiecutter.repo_owner}}/{{cookiecutter.repo_name}}/blob/main/docs)
-- [Home](https://github.com/{{cookiecutter.repo_owner}}/{{cookiecutter.repo_name}}/blob/main/docs/README.md)
-
-### Getting Started
-
-- [Prerequisites](https://github.com/{{cookiecutter.repo_owner}}/{{cookiecutter.repo_name}}/blob/main/docs/pages/getting-started/prerequisites.md)
-- [Installation](https://github.com/{{cookiecutter.repo_owner}}/{{cookiecutter.repo_name}}/blob/main/docs/pages/getting-started/installation.md)
-- [Quick start](https://github.com/{{cookiecutter.repo_owner}}/{{cookiecutter.repo_name}}/blob/main/docs/pages/getting-started/quick-start.md)
-- [Configuration](https://github.com/{{cookiecutter.repo_owner}}/{{cookiecutter.repo_name}}/blob/main/docs/pages/getting-started/configuration.md)
-- [Examples](https://github.com/{{cookiecutter.repo_owner}}/{{cookiecutter.repo_name}}/blob/main/docs/pages/getting-started/examples.md)
-
-### API Documentation
-
-<!-- - [API Reference](https://github.com/{{cookiecutter.repo_owner}}/{{cookiecutter.repo_name}}/blob/main/docs/pages/api-docs/api-reference.md) -->
-- [openapi.json](https://github.com/{{cookiecutter.repo_owner}}/{{cookiecutter.repo_name}}/blob/main/docs/pages/api-docs/openapi.json)
-- [Error Codes](https://github.com/{{cookiecutter.repo_owner}}/{{cookiecutter.repo_name}}/blob/main/docs/pages/api-docs/error-codes.md)
-
-### Development
-
-- [Test](https://github.com/{{cookiecutter.repo_owner}}/{{cookiecutter.repo_name}}/blob/main/docs/pages/dev/test.md)
-- [Build](https://github.com/{{cookiecutter.repo_owner}}/{{cookiecutter.repo_name}}/blob/main/docs/pages/dev/build.md)
-- [Docs](https://github.com/{{cookiecutter.repo_owner}}/{{cookiecutter.repo_name}}/blob/main/docs/pages/dev/docs.md)
-- [Scripts](https://github.com/{{cookiecutter.repo_owner}}/{{cookiecutter.repo_name}}/blob/main/docs/pages/dev/scripts/README.md)
-- [CI/CD](https://github.com/{{cookiecutter.repo_owner}}/{{cookiecutter.repo_name}}/blob/main/docs/pages/dev/cicd/README.md)
-- [File Structure](https://github.com/{{cookiecutter.repo_owner}}/{{cookiecutter.repo_name}}/blob/main/docs/pages/dev/file-structure.md)
-- [Sitemap](https://github.com/{{cookiecutter.repo_owner}}/{{cookiecutter.repo_name}}/blob/main/docs/pages/dev/sitemap.md)
-- [Related projects](https://github.com/{{cookiecutter.repo_owner}}/{{cookiecutter.repo_name}}/blob/main/docs/pages/dev/related-projects.md)
-- [Roadmap](https://github.com/{{cookiecutter.repo_owner}}/{{cookiecutter.repo_name}}/blob/main/docs/pages/dev/roadmap.md)
-- [Contributing](https://github.com/{{cookiecutter.repo_owner}}/{{cookiecutter.repo_name}}/blob/main/docs/pages/dev/contributing.md)
-
-### Research
-
-- [Reports](https://github.com/{{cookiecutter.repo_owner}}/{{cookiecutter.repo_name}}/blob/main/docs/pages/research/reports.md)
-- [Benchmarks](https://github.com/{{cookiecutter.repo_owner}}/{{cookiecutter.repo_name}}/blob/main/docs/pages/research/benchmarks.md)
-- [References](https://github.com/{{cookiecutter.repo_owner}}/{{cookiecutter.repo_name}}/blob/main/docs/pages/research/references.md)
-
-### [Release Notes](https://github.com/{{cookiecutter.repo_owner}}/{{cookiecutter.repo_name}}/blob/main/docs/pages/release-notes.md)
-
-### [Blog](https://github.com/{{cookiecutter.repo_owner}}/{{cookiecutter.repo_name}}/blob/main/docs/pages/blog/index.md)
-
-### About
-
-- [FAQ](https://github.com/{{cookiecutter.repo_owner}}/{{cookiecutter.repo_name}}/blob/main/docs/pages/about/faq.md)
-- [Authors](https://github.com/{{cookiecutter.repo_owner}}/{{cookiecutter.repo_name}}/blob/main/docs/pages/about/authors.md)
-- [Contact](https://github.com/{{cookiecutter.repo_owner}}/{{cookiecutter.repo_name}}/blob/main/docs/pages/about/contact.md)
-- [License](https://github.com/{{cookiecutter.repo_owner}}/{{cookiecutter.repo_name}}/blob/main/docs/pages/about/license.md)
+- [Docs](./docs)
 
 ---
 
@@ -463,5 +395,6 @@ mkdocs build
 - FastAPI - <https://fastapi.tiangolo.com>
 - PostgreSQL - <https://www.postgresql.org>
 - SQLAlchemy - <https://www.sqlalchemy.org>
+- Alembic - <https://alembic.sqlalchemy.org>
 - Docker - <https://docs.docker.com>
 - Docker Compose - <https://docs.docker.com/compose>

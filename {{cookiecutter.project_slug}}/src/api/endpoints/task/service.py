@@ -1,16 +1,16 @@
-# -*- coding: utf-8 -*-
-
-from typing import List, Tuple
+from typing import cast
 
 from pydantic import validate_call
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api.core.constants import ErrorCodeEnum, WarnEnum
+from potato_util.constants import WarnEnum
+from beans_logging_fastapi import log_at
+
+from api.core.constants import ErrorCodeEnum
 from api.config import config
 from api.core.exceptions import BaseHTTPException, EmptyValueError, NullConstraintError
 from api.endpoints.table_stat import service as table_stat_service
-from api.logger import async_log_mode
 
 from .schemas import TaskBasePM
 from .model import TaskORM
@@ -25,7 +25,7 @@ async def async_get_list(
     is_desc: bool = config.db.select_is_desc,
     warn_mode: WarnEnum = WarnEnum.IGNORE,
     **kwargs,
-) -> Tuple[List[TaskORM], int]:
+) -> tuple[list[TaskORM], int]:
     """Get list of tasks and total count.
 
     Args:
@@ -38,24 +38,25 @@ async def async_get_list(
         **kwargs      (dict        , optional): Column and value as key-value pair for filtering.
 
     Returns:
-        Tuple[List[TaskORM], int]: List of tasks and total count as tuple.
+        tuple[list[TaskORM], int]: List of tasks and total count as tuple.
     """
 
-    await async_log_mode(
-        message=f"[{request_id}] - Getting task list...", warn_mode=warn_mode
-    )
+    log_at(message=f"[{request_id}] - Getting task list...", warn_mode=warn_mode)
 
     _where = []
     if kwargs:
         for _key, _val in kwargs.items():
             _where.append({"column": _key, "value": _val})
 
-    _orm_tasks: List[TaskORM] = await TaskORM.async_select_by_where(
-        async_session=async_session,
-        where=_where,
-        offset=offset,
-        limit=limit,
-        is_desc=is_desc,
+    _orm_tasks = cast(
+        list[TaskORM],
+        await TaskORM.async_select_by_where(
+            async_session=async_session,
+            where=_where,
+            offset=offset,
+            limit=limit,
+            is_desc=is_desc,
+        ),
     )
 
     _all_count = 0
@@ -71,7 +72,7 @@ async def async_get_list(
             warn_mode=WarnEnum.DEBUG,
         )
 
-    await async_log_mode(
+    log_at(
         message=f"[{request_id}] - Successfully retrieved task list.",
         level="SUCCESS",
         warn_mode=warn_mode,
@@ -103,19 +104,20 @@ async def async_create(
         TaskORM: New TaskORM model.
     """
 
-    await async_log_mode(
-        message=f"[{request_id}] - Creating task...", warn_mode=warn_mode
-    )
+    log_at(message=f"[{request_id}] - Creating task...", warn_mode=warn_mode)
 
     _task_orm: TaskORM
     try:
-        _task_orm: TaskORM = await TaskORM.async_insert(
-            async_session=async_session,
-            auto_commit=auto_commit,
-            **task_in.model_dump(),
+        _task_orm = cast(
+            TaskORM,
+            await TaskORM.async_insert(
+                async_session=async_session,
+                auto_commit=auto_commit,
+                **task_in.model_dump(),
+            ),
         )
 
-        await async_log_mode(
+        log_at(
             message=f"[{request_id}] - Successfully created task with '{_task_orm.id}' ID.",
             level="SUCCESS",
             warn_mode=warn_mode,
@@ -152,16 +154,18 @@ async def async_get(
         TaskORM: TaskORM model.
     """
 
-    await async_log_mode(
+    log_at(
         message=f"[{request_id}] - Getting task with '{id}' ID...",
         warn_mode=warn_mode,
     )
 
     _task_orm: TaskORM
     try:
-        _task_orm: TaskORM = await TaskORM.async_get(async_session=async_session, id=id)
+        _task_orm = cast(
+            TaskORM, await TaskORM.async_get(async_session=async_session, id=id)
+        )
 
-        await async_log_mode(
+        log_at(
             message=f"[{request_id}] - Successfully retrieved task with '{id}' ID.",
             level="SUCCESS",
             warn_mode=warn_mode,
@@ -204,18 +208,21 @@ async def async_update(
         TaskORM: Updated TaskORM object.
     """
 
-    await async_log_mode(
+    log_at(
         message=f"[{request_id}] - Updating task with '{id}' ID...",
         warn_mode=warn_mode,
     )
 
     _task_orm: TaskORM
     try:
-        _task_orm: TaskORM = await TaskORM.async_update_by_id(
-            async_session=async_session, id=id, auto_commit=auto_commit, **kwargs
+        _task_orm = cast(
+            TaskORM,
+            await TaskORM.async_update_by_id(
+                async_session=async_session, id=id, auto_commit=auto_commit, **kwargs
+            ),
         )
 
-        await async_log_mode(
+        log_at(
             message=f"[{request_id}] - Successfully updated task with '{id}' ID.",
             level="SUCCESS",
             warn_mode=warn_mode,
@@ -261,7 +268,7 @@ async def async_delete(
         BaseHTTPException: If task is not found.
     """
 
-    await async_log_mode(
+    log_at(
         message=f"[{request_id}] - Deleting task with '{id}' ID...",
         warn_mode=warn_mode,
     )
@@ -271,7 +278,7 @@ async def async_delete(
             async_session=async_session, id=id, auto_commit=auto_commit
         )
 
-        await async_log_mode(
+        log_at(
             message=f"[{request_id}] - Successfully deleted task with '{id}' ID.",
             level="SUCCESS",
             warn_mode=warn_mode,

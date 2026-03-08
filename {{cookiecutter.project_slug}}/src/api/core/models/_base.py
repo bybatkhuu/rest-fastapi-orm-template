@@ -1,14 +1,12 @@
-# -*- coding: utf-8 -*-
-
 from sqlalchemy import MetaData
 from sqlalchemy.orm import DeclarativeBase, declared_attr
 from sqlalchemy.ext.asyncio import AsyncAttrs
 
+from potato_util import camel_to_snake
+
 from api.config import config
-from api.core import utils
 
 from .mixins import AsyncCRUDMixin, CRUDMixin
-
 
 _NAMING_CONVENTION = {
     "ix": "ix__%(table_name)s__%(column_0_name)s",
@@ -34,7 +32,7 @@ class AsyncBaseORM(AsyncCRUDMixin, AsyncAttrs, DeclarativeBase):
 
     @declared_attr.directive
     def __tablename__(cls) -> str:
-        _table_name = utils.camel_to_snake(cls.__name__).replace("_orm", "")
+        _table_name = camel_to_snake(cls.__name__).replace("_orm", "")
         _table_name = f"{config.db.prefix}{_table_name}"
         return _table_name
 
@@ -54,7 +52,7 @@ class SyncBaseORM(CRUDMixin, DeclarativeBase):
 
     @declared_attr.directive
     def __tablename__(cls) -> str:
-        _table_name = utils.camel_to_snake(cls.__name__).replace("_orm", "")
+        _table_name = camel_to_snake(cls.__name__).replace("_orm", "")
         _table_name = f"{config.db.prefix}{_table_name}"
         return _table_name
 
@@ -75,7 +73,7 @@ class BaseORM(CRUDMixin, AsyncCRUDMixin, AsyncAttrs, DeclarativeBase):
 
     @declared_attr.directive
     def __tablename__(cls) -> str:
-        _table_name = utils.camel_to_snake(cls.__name__).replace("_orm", "")
+        _table_name = camel_to_snake(cls.__name__).replace("_orm", "")
         _table_name = f"{config.db.prefix}{_table_name}"
         return _table_name
 

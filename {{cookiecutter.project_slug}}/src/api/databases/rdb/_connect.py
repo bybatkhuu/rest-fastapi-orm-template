@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import asyncio
 
 from pydantic import validate_call, AnyUrl
@@ -17,14 +15,14 @@ from sqlalchemy.pool import AsyncAdaptedQueuePool, QueuePool, SingletonThreadPoo
 from api.config import config
 
 
-## Async
+# Async
 @validate_call
-def make_async_engine(dsn_url: AnyUrl, **kwargs) -> AsyncEngine:
+def make_async_engine(dsn_url: AnyUrl | str, **kwargs) -> AsyncEngine:
     """Create an async engine from a database connection string.
 
     Args:
-        dsn_url  (AnyUrl        , required): Database connection string as Data Source Name (URL).
-        **kwargs (Dict[str, Any], optional): Additional keyword arguments.
+        dsn_url  (AnyUrl | str  , required): Database connection string as Data Source Name (URL).
+        **kwargs (dict[str, Any], optional): Additional keyword arguments.
 
     Returns:
         AsyncEngine: SQLAlchemy async engine for database.
@@ -64,7 +62,9 @@ def make_async_engine(dsn_url: AnyUrl, **kwargs) -> AsyncEngine:
     ) and ("pool_size" not in kwargs):
         kwargs["pool_size"] = config.db.pool_size
 
-    dsn_url = str(dsn_url)
+    if isinstance(dsn_url, AnyUrl):
+        dsn_url = str(dsn_url)
+
     _async_engine = create_async_engine(url=dsn_url, **kwargs)
     return _async_engine
 
@@ -77,7 +77,7 @@ def create_async_session_maker(
 
     Args:
         async_engine (AsyncEngine   , required): SQLAlchemy async engine for session.
-        **kwargs     (Dict[str, Any], optional): Additional keyword arguments.
+        **kwargs     (dict[str, Any], optional): Additional keyword arguments.
 
     Returns:
         async_scoped_session[AsyncSession]: SQLAlchemy async session maker.
@@ -96,14 +96,14 @@ def create_async_session_maker(
     return _AsyncSession
 
 
-## Sync
+# Sync
 @validate_call
-def make_engine(dsn_url: AnyUrl, **kwargs) -> Engine:
+def make_engine(dsn_url: AnyUrl | str, **kwargs) -> Engine:
     """Create an engine from a database connection string.
 
     Args:
-        dsn_url  (AnyUrl        , required): Database connection string as Data Source Name (URL).
-        **kwargs (Dict[str, Any], optional): Additional keyword arguments.
+        dsn_url  (AnyUrl | str  , required): Database connection string as Data Source Name (URL).
+        **kwargs (dict[str, Any], optional): Additional keyword arguments.
 
     Returns:
         Engine: SQLAlchemy engine for database.
@@ -143,7 +143,9 @@ def make_engine(dsn_url: AnyUrl, **kwargs) -> Engine:
     ) and ("pool_size" not in kwargs):
         kwargs["pool_size"] = config.db.pool_size
 
-    dsn_url = str(dsn_url)
+    if isinstance(dsn_url, AnyUrl):
+        dsn_url = str(dsn_url)
+
     _engine = create_engine(url=dsn_url, **kwargs)
     return _engine
 

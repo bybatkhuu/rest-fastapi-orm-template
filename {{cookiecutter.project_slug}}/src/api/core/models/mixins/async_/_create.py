@@ -1,6 +1,10 @@
-# -*- coding: utf-8 -*-
+import sys
+from typing import Any, cast
 
-from typing import Any, Dict, Union, List
+if sys.version_info >= (3, 11):
+    from typing import Self
+else:
+    from typing_extensions import Self
 
 from pydantic import validate_call
 from sqlalchemy import Result
@@ -8,7 +12,8 @@ from sqlalchemy.orm import DeclarativeBase, declarative_mixin
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api.core.constants import WarnEnum
+from potato_util.constants import WarnEnum
+
 from api.config import config
 
 if config.db.dialect == "postgresql":
@@ -36,6 +41,73 @@ from api.logger import logger
 from ._update import AsyncUpdateMixin
 
 
+def _raise_integrity_error(
+    err: IntegrityError, cls_name: str | None = None, id_: str | None = None
+) -> None:
+    """Raise custom exceptions based on SQLAlchemy IntegrityError.
+
+    Args:
+        err      (IntegrityError, required): SQLAlchemy IntegrityError instance.
+        cls_name (str | None    , optional): Class name for PK error message. Defaults to None.
+        id_      (str | None    , optional): ID for PK error message. Defaults to None.
+
+    Raises:
+        NullConstraintError : If null constraint error occurred.
+        PrimaryKeyError     : If ID (PK) already exists in database.
+        UniqueKeyError      : If unique constraint error occurred.
+        ForeignKeyError     : If foreign key constraint error occurred.
+        CheckConstraintError: If check constraint error occurred.
+    """
+
+    _err_orig = err.orig
+    if isinstance(_err_orig, NotNullViolation):
+        _err_orig = cast(NotNullViolation, _err_orig)
+        raise NullConstraintError(f"`{_err_orig.diag.column_name}` cannot be NULL!")
+    elif isinstance(_err_orig, UniqueViolation):
+        _err_orig = cast(UniqueViolation, _err_orig)
+        _detail = _err_orig.diag.message_detail
+        _detail = (
+            _detail.replace("Key ", "")
+            if _detail
+            else "Unique constraint violation occurred!"
+        )
+
+        if cls_name and ("(id)=" in _detail):
+            _message = f"`{cls_name}` IDs already exist in database!"
+            if id_:
+                _message = f"`{cls_name}` '{id_}' ID already exists in database!"
+
+            logger.error(_message)
+            raise PrimaryKeyError(_detail)
+
+        raise UniqueKeyError(_detail)
+    elif isinstance(_err_orig, ForeignKeyViolation):
+        _err_orig = cast(ForeignKeyViolation, _err_orig)
+        _detail = _err_orig.diag.message_detail
+
+        if _detail:
+            _detail = (
+                _detail.replace("Key ", "")
+                .replace('"', "'")
+                .replace(f"table '{config.db.prefix}", "'")
+            )
+        else:
+            _detail = "Foreign key constraint violation occurred!"
+
+        raise ForeignKeyError(_detail)
+    elif isinstance(_err_orig, CheckViolation):
+        _err_orig = cast(CheckViolation, _err_orig)
+        _detail = _err_orig.diag.message_detail
+        _detail = (
+            _detail.replace("Key ", "")
+            if _detail
+            else "Check constraint violation occurred!"
+        )
+        raise CheckConstraintError(_detail)
+
+    return
+
+
 @declarative_mixin
 class AsyncCreateMixin(AsyncUpdateMixin):
     @classmethod
@@ -48,7 +120,7 @@ class AsyncCreateMixin(AsyncUpdateMixin):
         auto_commit: bool = False,
         warn_mode: WarnEnum = WarnEnum.DEBUG,
         **kwargs,
-    ) -> DeclarativeBase:
+    ) -> DeclarativeBase | Self | None:
         """Insert new data/ORM object into database.
 
         Args:
@@ -57,7 +129,7 @@ class AsyncCreateMixin(AsyncUpdateMixin):
             returning     (bool          , optional): Return inserted ORM object from database. Defaults to True.
             auto_commit   (bool          , optional): Auto commit. Defaults to False.
             warn_mode     (WarnEnum      , optional): Warning mode. Defaults to `WarnEnum.DEBUG`.
-            **kwargs      (Dict[str, Any], required): Dictionary of object data.
+            **kwargs      (dict[str, Any], required): Dictionary of object data.
 
         Raises:
             EmptyValueError     : If no data provided to insert.
@@ -69,7 +141,7 @@ class AsyncCreateMixin(AsyncUpdateMixin):
             Exception           : If failed to save object into database.
 
         Returns:
-            DeclarativeBase: New ORM object.
+            DeclarativeBase | Self | None: Inserted ORM object or None if `returning` is False.
         """
 
         if not kwargs:
@@ -78,10 +150,10 @@ class AsyncCreateMixin(AsyncUpdateMixin):
         if "id" not in kwargs:
             kwargs["id"] = cls.gen_unique_id()
 
-        _orm_object: Union[DeclarativeBase, None] = None
+        _orm_object: DeclarativeBase | Self | None = None
         try:
             if orm_way:
-                _orm_object = cls(**kwargs)
+                _orm_object = cast(DeclarativeBase | Self, cls(**kwargs))
                 async_session.add(_orm_object)
 
                 if auto_commit:
@@ -94,7 +166,7 @@ class AsyncCreateMixin(AsyncUpdateMixin):
 
                 _result: Result = await async_session.execute(_stmt)
                 if returning:
-                    _orm_object: cls = _result.scalars().one()
+                    _orm_object = cast(DeclarativeBase | Self, _result.scalars().one())
 
                 if auto_commit:
                     await async_session.commit()
@@ -104,29 +176,9 @@ class AsyncCreateMixin(AsyncUpdateMixin):
                 await async_session.rollback()
 
             if isinstance(err, IntegrityError):
-                if isinstance(err.orig, NotNullViolation):
-                    raise NullConstraintError(
-                        f"`{err.orig.diag.column_name}` cannot be NULL."
-                    )
-                elif isinstance(err.orig, UniqueViolation):
-                    _detail = err.orig.diag.message_detail.replace("Key ", "")
-                    if "(id)=" in _detail:
-                        logger.error(
-                            f"`{cls.__name__}` '{kwargs['id']}' ID already exists in database!"
-                        )
-                        raise PrimaryKeyError(_detail)
-
-                    raise UniqueKeyError(_detail)
-                elif isinstance(err.orig, ForeignKeyViolation):
-                    _detail = (
-                        err.orig.diag.message_detail.replace("Key ", "")
-                        .replace('"', "'")
-                        .replace(f"table '{config.db.prefix}", "'")
-                    )
-                    raise ForeignKeyError(_detail)
-                elif isinstance(err.orig, CheckViolation):
-                    _detail = err.orig.diag.message_detail.replace("Key ", "")
-                    raise CheckConstraintError(_detail)
+                _raise_integrity_error(
+                    err=err, cls_name=cls.__name__, id_=kwargs.get("id")
+                )
 
             _message = f"Failed to insert `{cls.__name__}` object '{kwargs['id']}' ID into database!"
             if warn_mode == WarnEnum.ALWAYS:
@@ -145,14 +197,14 @@ class AsyncCreateMixin(AsyncUpdateMixin):
         auto_commit: bool = False,
         warn_mode: WarnEnum = WarnEnum.DEBUG,
         **kwargs,
-    ) -> DeclarativeBase:
+    ) -> Self | DeclarativeBase:
         """Save ORM object into database.
 
         Args:
             async_session (AsyncSession  , required): SQLAlchemy async_session for database connection.
             auto_commit   (bool          , optional): Auto commit. Defaults to False.
             warn_mode     (WarnEnum      , optional): Warning mode. Defaults to `WarnEnum.DEBUG`.
-            **kwargs      (Dict[str, Any], optional): Dictionary of ORM object data.
+            **kwargs      (dict[str, Any], optional): Dictionary of ORM object data.
 
         Raises:
             NullConstraintError : If null constraint error occurred.
@@ -163,14 +215,14 @@ class AsyncCreateMixin(AsyncUpdateMixin):
             Exception           : If failed to save object into database.
 
         Returns:
-            DeclarativeBase: Created or updated ORM object.
+            Self | DeclarativeBase: Saved ORM object.
         """
 
         try:
             for _key, _val in kwargs.items():
                 setattr(self, _key, _val)
 
-            _orm_object: Union[DeclarativeBase, None] = await self.__class__.async_get(
+            _orm_object = await self.__class__.async_get(
                 async_session=async_session,
                 id=self.id,
                 allow_no_result=True,
@@ -188,29 +240,9 @@ class AsyncCreateMixin(AsyncUpdateMixin):
                 await async_session.rollback()
 
             if isinstance(err, IntegrityError):
-                if isinstance(err.orig, NotNullViolation):
-                    raise NullConstraintError(
-                        f"`{err.orig.diag.column_name}` cannot be NULL."
-                    )
-                elif isinstance(err.orig, UniqueViolation):
-                    _detail = err.orig.diag.message_detail.replace("Key ", "")
-                    if "(id)=" in _detail:
-                        logger.error(
-                            f"`{self.__class__.__name__}` '{self.id}' ID already exists in database!"
-                        )
-                        raise PrimaryKeyError(_detail)
-
-                    raise UniqueKeyError(_detail)
-                elif isinstance(err.orig, ForeignKeyViolation):
-                    _detail = (
-                        err.orig.diag.message_detail.replace("Key ", "")
-                        .replace('"', "'")
-                        .replace(f"table '{config.db.prefix}", "'")
-                    )
-                    raise ForeignKeyError(_detail)
-                elif isinstance(err.orig, CheckViolation):
-                    _detail = err.orig.diag.message_detail.replace("Key ", "")
-                    raise CheckConstraintError(_detail)
+                _raise_integrity_error(
+                    err=err, cls_name=self.__class__.__name__, id_=self.id
+                )
 
             _message = f"Failed to save `{self.__class__.__name__}` object (self) '{self.id}' ID into database!"
             if warn_mode == WarnEnum.ALWAYS:
@@ -232,7 +264,7 @@ class AsyncCreateMixin(AsyncUpdateMixin):
         auto_commit: bool = False,
         warn_mode: WarnEnum = WarnEnum.DEBUG,
         **kwargs,
-    ) -> Union[DeclarativeBase, None]:
+    ) -> DeclarativeBase | Self | None:
         """Upsert data into database.
 
         Args:
@@ -252,16 +284,16 @@ class AsyncCreateMixin(AsyncUpdateMixin):
             Exception           : If failed to upsert object into database.
 
         Returns:
-            Union[DeclarativeBase, None]: Upserted ORM object.
+            DeclarativeBase | Self | None: Upserted ORM object or None if `returning` is False.
         """
 
         if not kwargs:
             raise EmptyValueError("No data provided to upsert!")
 
-        _orm_object: Union[cls, None] = None
+        _orm_object: DeclarativeBase | Self | None = None
         if orm_way:
             if "id" in kwargs:
-                _orm_object: Union[cls, None] = await cls.async_get(
+                _orm_object = await cls.async_get(
                     async_session=async_session,
                     id=kwargs["id"],
                     allow_no_result=True,
@@ -269,14 +301,17 @@ class AsyncCreateMixin(AsyncUpdateMixin):
                 )
 
             if _orm_object:
-                _orm_object: cls = await _orm_object.async_update(
-                    async_session=async_session,
-                    auto_commit=auto_commit,
-                    warn_mode=warn_mode,
-                    **kwargs,
+                _orm_object = cast(
+                    Self,
+                    await cast(Self, _orm_object).async_update(
+                        async_session=async_session,
+                        auto_commit=auto_commit,
+                        warn_mode=warn_mode,
+                        **kwargs,
+                    ),
                 )
             else:
-                _orm_object: cls = await cls.async_insert(
+                _orm_object = await cls.async_insert(
                     async_session=async_session,
                     orm_way=True,
                     auto_commit=auto_commit,
@@ -295,19 +330,19 @@ class AsyncCreateMixin(AsyncUpdateMixin):
                 _stmt: Insert = insert(cls).values(**kwargs)
                 # Only for PostgreSQL
                 if config.db.dialect == "postgresql":
-                    _stmt = _stmt.on_conflict_do_update(
+                    _stmt = _stmt.on_conflict_do_update(  # type: ignore
                         index_elements=["id"], set_=_update_set
                     )
                 # Only for MySQL and MariaDB
                 elif (config.db.dialect == "mysql") or (config.db.dialect == "mariadb"):
-                    _stmt = _stmt.on_duplicate_key_update(**_update_set)
+                    _stmt = _stmt.on_duplicate_key_update(**_update_set)  # type: ignore
 
                 if returning:
                     _stmt = _stmt.returning(cls)
 
                 _result: Result = await async_session.execute(_stmt)
                 if returning:
-                    _orm_object: cls = _result.scalars().one()
+                    _orm_object = cast(DeclarativeBase | Self, _result.scalars().one())
 
                 if auto_commit:
                     await async_session.commit()
@@ -317,23 +352,7 @@ class AsyncCreateMixin(AsyncUpdateMixin):
                     await async_session.rollback()
 
                 if isinstance(err, IntegrityError):
-                    if isinstance(err.orig, NotNullViolation):
-                        raise NullConstraintError(
-                            f"`{err.orig.diag.column_name}` cannot be NULL."
-                        )
-                    elif isinstance(err.orig, UniqueViolation):
-                        _detail = err.orig.diag.message_detail.replace("Key ", "")
-                        raise UniqueKeyError(_detail)
-                    elif isinstance(err.orig, ForeignKeyViolation):
-                        _detail = (
-                            err.orig.diag.message_detail.replace("Key ", "")
-                            .replace('"', "'")
-                            .replace(f"table '{config.db.prefix}", "'")
-                        )
-                        raise ForeignKeyError(_detail)
-                    elif isinstance(err.orig, CheckViolation):
-                        _detail = err.orig.diag.message_detail.replace("Key ", "")
-                        raise CheckConstraintError(_detail)
+                    _raise_integrity_error(err=err)
 
                 _message = f"Failed to upsert `{cls.__name__}` object '{kwargs['id']}' ID into database!"
                 if warn_mode == WarnEnum.ALWAYS:
@@ -350,16 +369,16 @@ class AsyncCreateMixin(AsyncUpdateMixin):
     async def async_bulk_insert(
         cls,
         async_session: AsyncSession,
-        raw_data: List[Dict[str, Any]],
+        raw_data: list[dict[str, Any]],
         returning: bool = True,
         auto_commit: bool = False,
         warn_mode: WarnEnum = WarnEnum.DEBUG,
-    ) -> List[DeclarativeBase]:
+    ) -> list[DeclarativeBase | Self]:
         """Bulk insert data into database.
 
         Args:
             async_session (AsyncSession        , required): SQLAlchemy async_session for database connection.
-            raw_data      (List[Dict[str, Any]], required): List of dictionary object data.
+            raw_data      (list[dict[str, Any]], required): List of dictionary object data.
             returning     (bool                , optional): Return inserted ORM objects from database. Defaults to True.
             auto_commit   (bool                , optional): Auto commit. Defaults to False.
             warn_mode     (WarnEnum            , optional): Warning mode. Defaults to `WarnEnum.DEBUG`.
@@ -374,7 +393,7 @@ class AsyncCreateMixin(AsyncUpdateMixin):
             Exception           : If failed to bulk insert objects into database.
 
         Returns:
-            List[DeclarativeBase]: List of inserted ORM objects.
+            list[DeclarativeBase | Self]: List of inserted ORM objects if `returning` is True, otherwise empty list.
         """
 
         if not raw_data:
@@ -384,7 +403,7 @@ class AsyncCreateMixin(AsyncUpdateMixin):
             if "id" not in _data:
                 _data["id"] = cls.gen_unique_id()
 
-        _orm_objects: List[cls] = []
+        _orm_objects: list[DeclarativeBase | Self] = []
         try:
             _stmt: Insert = insert(cls)
             if returning:
@@ -392,7 +411,9 @@ class AsyncCreateMixin(AsyncUpdateMixin):
 
             _result: Result = await async_session.execute(_stmt, raw_data)
             if returning:
-                _orm_objects: List[cls] = _result.scalars().all()
+                _orm_objects = cast(
+                    list[DeclarativeBase | Self], _result.scalars().all()
+                )
 
             if auto_commit:
                 await async_session.commit()
@@ -402,29 +423,7 @@ class AsyncCreateMixin(AsyncUpdateMixin):
                 await async_session.rollback()
 
             if isinstance(err, IntegrityError):
-                if isinstance(err.orig, NotNullViolation):
-                    raise NullConstraintError(
-                        f"`{err.orig.diag.column_name}` cannot be NULL."
-                    )
-                elif isinstance(err.orig, UniqueViolation):
-                    _detail = err.orig.diag.message_detail.replace("Key ", "")
-                    if "(id)=" in _detail:
-                        logger.error(
-                            f"`{cls.__name__}` IDs already exists in database!"
-                        )
-                        raise PrimaryKeyError(_detail)
-
-                    raise UniqueKeyError(_detail)
-                elif isinstance(err.orig, ForeignKeyViolation):
-                    _detail = (
-                        err.orig.diag.message_detail.replace("Key ", "")
-                        .replace('"', "'")
-                        .replace(f"table '{config.db.prefix}", "'")
-                    )
-                    raise ForeignKeyError(_detail)
-                elif isinstance(err.orig, CheckViolation):
-                    _detail = err.orig.diag.message_detail.replace("Key ", "")
-                    raise CheckConstraintError(_detail)
+                _raise_integrity_error(err=err, cls_name=cls.__name__)
 
             _message = f"Failed to bulk insert `{cls.__name__}` objects into database!"
             if warn_mode == WarnEnum.ALWAYS:
