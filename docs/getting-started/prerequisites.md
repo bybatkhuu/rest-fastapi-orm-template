@@ -13,8 +13,15 @@ For **standalone** runtime:
 
 - Install **Python (>= v3.10)** and **pip (>= 23)**:
     - **[RECOMMENDED] [Miniconda (v3)](https://www.anaconda.com/docs/getting-started/miniconda/install)**
-    - *[arm64/aarch64]  [Miniforge (v3)](https://github.com/conda-forge/miniforge)*
-    - *[Python virtual environment]  [venv](https://docs.python.org/3/library/venv.html)*
+    - *[arm64/aarch64] [Miniforge (v3)](https://github.com/conda-forge/miniforge)*
+    - *[Python virtual environment] [venv](https://docs.python.org/3/library/venv.html)*
+- Install **PostrgreSQL (>= v18)**:
+    - **[RECOMMENDED] [Docker image](https://hub.docker.com/_/postgres)** (postgres)
+    - *[Packages and installers](https://www.postgresql.org/download)*
+- Install **libpq (>= v17)** for **psycopg[c]**:
+    - **[RECOMMENDED] Miniconda - [libpq](https://anaconda.org/anaconda/libpq)**
+    - Debian/Ubuntu - **libpq-dev**
+    - MacOS - **[libpq](https://formulae.brew.sh/formula/libpq)**
 
 [OPTIONAL] For **DEVELOPMENT** environment:
 
