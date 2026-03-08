@@ -65,10 +65,4 @@ pip install -r ./requirements/requirements.amd64.txt
 
 ```sh
 pip install -r ./requirements/requirements.arm64.txt
-```
-
-**OPTION C.** For **NVIDIA GPU** and **x86_64** CPU:
-
-```sh
-pip install -r ./requirements/requirements.gpu.txt
 ``` -->
