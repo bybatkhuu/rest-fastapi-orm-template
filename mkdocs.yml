@@ -1,4 +1,4 @@
-site_name: FastAPI ORM Template
+site_name: "FastAPI ORM Template"
 site_description: "This is a template repository for FastAPI with ORM (SQLAlchemy) projects."
 site_url: https://fot-docs.bybatkhuu.dev
 repo_name: bybatkhuu/rest-fastapi-orm-template
