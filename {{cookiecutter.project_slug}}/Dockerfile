@@ -2,7 +2,7 @@
 # check=skip=SecretsUsedInArgOrEnv
 
 ARG PYTHON_VERSION={{cookiecutter.python_version}}
-ARG BASE_IMAGE=python:${PYTHON_VERSION}-slim-bookworm
+ARG BASE_IMAGE=python:${PYTHON_VERSION}-slim-trixie
 
 ARG DEBIAN_FRONTEND=noninteractive
 ARG {{cookiecutter.env_prefix}}API_SLUG="{{cookiecutter.project_slug}}"
