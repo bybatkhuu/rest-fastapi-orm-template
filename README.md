@@ -222,27 +222,6 @@ fastapi run src/api/main.py --port=8000 --forwarded-allow-ips="*"
 fastapi dev src/api/main.py --host="0.0.0.0" --port=8000 --forwarded-allow-ips="*"
 ```
 
-#### Run directly from src directory
-
-```sh
-# 1. Enter into src directory:
-cd src
-
-# 2. Run server:
-# 2.a. Run as python module:
-python -u -m api
-
-# 2.b. Or run with uvicorn cli:
-uvicorn api.main:app --host="0.0.0.0" --port=8000 --no-access-log --no-server-header --proxy-headers --forwarded-allow-ips="*"
-# For DEVELOPMENT:
-uvicorn api.main:app --host="0.0.0.0" --port=8000 --no-access-log --no-server-header --proxy-headers --forwarded-allow-ips="*" --reload
-
-# 2.c. Or run with fastapi cli:
-fastapi run api/main.py --port=8000 --forwarded-allow-ips="*"
-# For DEVELOPMENT:
-fastapi dev api/main.py --host="0.0.0.0" --port=8000 --forwarded-allow-ips="*"
-```
-
 ### 6. ✅ Check server is running
 
 Check with CLI (curl):

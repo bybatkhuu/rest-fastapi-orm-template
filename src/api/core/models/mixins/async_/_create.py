@@ -7,27 +7,26 @@ else:
     from typing_extensions import Self
 
 from pydantic import validate_call
-from sqlalchemy import Result
+from sqlalchemy import Result, Insert, insert
 from sqlalchemy.orm import DeclarativeBase, declarative_mixin
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
+from psycopg.errors import (
+    NotNullViolation,
+    UniqueViolation,
+    ForeignKeyViolation,
+    CheckViolation,
+)
 
 from potato_util.constants import WarnEnum
 
 from api.config import config
 
 if config.db.dialect == "postgresql":
-    from sqlalchemy.dialects.postgresql import Insert, insert
-    from psycopg.errors import (
-        NotNullViolation,
-        UniqueViolation,
-        ForeignKeyViolation,
-        CheckViolation,
-    )
+    from sqlalchemy.dialects.postgresql import Insert as pgInsert, insert as pg_insert
 elif (config.db.dialect == "mysql") or (config.db.dialect == "mariadb"):
-    from sqlalchemy.dialects.mysql import Insert, insert
-else:
-    from sqlalchemy import Insert, insert
+    from sqlalchemy.dialects.mysql import Insert as myInsert, insert as my_insert
+
 from api.core.exceptions import (
     EmptyValueError,
     PrimaryKeyError,
@@ -327,15 +326,23 @@ class AsyncCreateMixin(AsyncUpdateMixin):
                     key: value for key, value in kwargs.items() if key != "id"
                 }
 
-                _stmt: Insert = insert(cls).values(**kwargs)
+                _stmt: Insert
                 # Only for PostgreSQL
                 if config.db.dialect == "postgresql":
-                    _stmt = _stmt.on_conflict_do_update(  # type: ignore
+                    _stmt = cast(
+                        pgInsert, pg_insert(cls).values(**kwargs)  # pyright: ignore
+                    )
+                    _stmt = _stmt.on_conflict_do_update(
                         index_elements=["id"], set_=_update_set
                     )
                 # Only for MySQL and MariaDB
                 elif (config.db.dialect == "mysql") or (config.db.dialect == "mariadb"):
-                    _stmt = _stmt.on_duplicate_key_update(**_update_set)  # type: ignore
+                    _stmt = cast(
+                        myInsert, my_insert(cls).values(**kwargs)  # pyright: ignore
+                    )
+                    _stmt = _stmt.on_duplicate_key_update(**_update_set)
+                else:
+                    _stmt: Insert = insert(cls).values(**kwargs)
 
                 if returning:
                     _stmt = _stmt.returning(cls)

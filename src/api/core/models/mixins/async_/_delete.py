@@ -11,15 +11,11 @@ from sqlalchemy import Delete, delete, Result
 from sqlalchemy.orm import DeclarativeBase, declarative_mixin
 from sqlalchemy.exc import NoResultFound, DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
+from psycopg.errors import ForeignKeyViolation
 
 from potato_util.constants import WarnEnum
 
 from api.config import config
-
-if config.db.dialect == "postgresql":
-    from psycopg.errors import ForeignKeyViolation
-# else:
-#     from sqlalchemy.exc import IntegrityError as ForeignKeyViolation
 from api.core.exceptions import EmptyValueError, ForeignKeyError
 from api.logger import logger
 

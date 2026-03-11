@@ -43,7 +43,7 @@ class TaskBasePM(BasePM):
 
 
 class TaskUpPM(TaskBasePM):
-    name: str | None = Field(
+    name: str | None = Field(  # pyright: ignore
         default=None,
         min_length=2,
         max_length=64,

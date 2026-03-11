@@ -10,18 +10,16 @@ from pydantic import validate_call
 from sqlalchemy import Update, update, Result
 from sqlalchemy.orm import DeclarativeBase, declarative_mixin, Session
 from sqlalchemy.exc import NoResultFound, IntegrityError
+from psycopg.errors import (
+    NotNullViolation,
+    UniqueViolation,
+    ForeignKeyViolation,
+    CheckViolation,
+)
 
 from potato_util.constants import WarnEnum
 
 from api.config import config
-
-if config.db.dialect == "postgresql":
-    from psycopg.errors import (
-        NotNullViolation,
-        UniqueViolation,
-        ForeignKeyViolation,
-        CheckViolation,
-    )
 from api.core.exceptions import (
     UniqueKeyError,
     EmptyValueError,
