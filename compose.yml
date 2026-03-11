@@ -14,7 +14,7 @@ services:
     command: ["-p", "${FOT_DB_PORT:-5432}"]
     tty: true
   api:
-    image: bybatkhuu/rest-fastapi-orm-template:4.0.1-260308
+    image: bybatkhuu/rest-fastapi-orm-template:4.0.2-260311
     build:
       context: .
     depends_on:
