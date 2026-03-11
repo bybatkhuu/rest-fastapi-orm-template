@@ -37,8 +37,8 @@ async def async_create_db(
     """
 
     _is_db_exists = False
+    _url: URL = async_engine.url
     try:
-        _url: URL = async_engine.url
         if not await run_in_threadpool(database_exists, url=_url):
             logger.warning(
                 f"Can't connect to '{_url.database}' database or doesn't exist, trying to create it..."
@@ -101,8 +101,8 @@ def create_db(engine: Engine, warn_mode: WarnEnum = WarnEnum.ERROR) -> bool:
     """
 
     _is_db_exists = False
+    _url: URL = engine.url
     try:
-        _url: URL = engine.url
         if not database_exists(url=_url):
             logger.warning(
                 f"Can't connect to '{_url.database}' database or doesn't exist, trying to create it..."
