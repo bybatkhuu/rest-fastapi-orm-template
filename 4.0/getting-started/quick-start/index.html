@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../../assets/images/logo.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.4">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.5">
     
     
       
@@ -676,17 +676,6 @@
     <span class="md-ellipsis">
       
         Standalone runtime (Python)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#run-directly-from-src-directory" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Run directly from src directory
       
     </span>
   </a>
@@ -1474,17 +1463,6 @@
   
 </li>
         
-          <li class="md-nav__item">
-  <a href="#run-directly-from-src-directory" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Run directly from src directory
-      
-    </span>
-  </a>
-  
-</li>
-        
       </ul>
     </nav>
   
@@ -1621,28 +1599,10 @@
 </span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="c1"># For DEVELOPMENT:</span>
 </span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>fastapi<span class="w"> </span>dev<span class="w"> </span>src/api/main.py<span class="w"> </span>--host<span class="o">=</span><span class="s2">&quot;0.0.0.0&quot;</span><span class="w"> </span>--port<span class="o">=</span><span class="m">8000</span><span class="w"> </span>--forwarded-allow-ips<span class="o">=</span><span class="s2">&quot;*&quot;</span>
 </span></code></pre></div>
-<h3 id="run-directly-from-src-directory">Run directly from src directory</h3>
-<div class="language-sh highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1"># 1. Enter into src directory:</span>
-</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="nb">cd</span><span class="w"> </span>src
-</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>
-</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="c1"># 2. Run server:</span>
-</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="c1"># 2.a. Run as python module:</span>
-</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>python<span class="w"> </span>-u<span class="w"> </span>-m<span class="w"> </span>api
-</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>
-</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="c1"># 2.b. Or run with uvicorn cli:</span>
-</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>uvicorn<span class="w"> </span>api.main:app<span class="w"> </span>--host<span class="o">=</span><span class="s2">&quot;0.0.0.0&quot;</span><span class="w"> </span>--port<span class="o">=</span><span class="m">8000</span><span class="w"> </span>--no-access-log<span class="w"> </span>--no-server-header<span class="w"> </span>--proxy-headers<span class="w"> </span>--forwarded-allow-ips<span class="o">=</span><span class="s2">&quot;*&quot;</span>
-</span><span id="__span-7-10"><a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="c1"># For DEVELOPMENT:</span>
-</span><span id="__span-7-11"><a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a>uvicorn<span class="w"> </span>api.main:app<span class="w"> </span>--host<span class="o">=</span><span class="s2">&quot;0.0.0.0&quot;</span><span class="w"> </span>--port<span class="o">=</span><span class="m">8000</span><span class="w"> </span>--no-access-log<span class="w"> </span>--no-server-header<span class="w"> </span>--proxy-headers<span class="w"> </span>--forwarded-allow-ips<span class="o">=</span><span class="s2">&quot;*&quot;</span><span class="w"> </span>--reload
-</span><span id="__span-7-12"><a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a>
-</span><span id="__span-7-13"><a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a><span class="c1"># 2.c. Or run with fastapi cli:</span>
-</span><span id="__span-7-14"><a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a>fastapi<span class="w"> </span>run<span class="w"> </span>api/main.py<span class="w"> </span>--port<span class="o">=</span><span class="m">8000</span><span class="w"> </span>--forwarded-allow-ips<span class="o">=</span><span class="s2">&quot;*&quot;</span>
-</span><span id="__span-7-15"><a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a><span class="c1"># For DEVELOPMENT:</span>
-</span><span id="__span-7-16"><a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a>fastapi<span class="w"> </span>dev<span class="w"> </span>api/main.py<span class="w"> </span>--host<span class="o">=</span><span class="s2">&quot;0.0.0.0&quot;</span><span class="w"> </span>--port<span class="o">=</span><span class="m">8000</span><span class="w"> </span>--forwarded-allow-ips<span class="o">=</span><span class="s2">&quot;*&quot;</span>
-</span></code></pre></div>
 <h2 id="3-check-server-is-running">3. ✅ Check server is running</h2>
 <p>Check with CLI (curl):</p>
-<div class="language-sh highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># Send a ping request with &#39;curl&#39; to REST API server and parse JSON response with &#39;jq&#39;:</span>
-</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>curl<span class="w"> </span>-s<span class="w"> </span>http://localhost:8000/api/v1/ping<span class="w"> </span><span class="p">|</span><span class="w"> </span>jq
+<div class="language-sh highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1"># Send a ping request with &#39;curl&#39; to REST API server and parse JSON response with &#39;jq&#39;:</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>curl<span class="w"> </span>-s<span class="w"> </span>http://localhost:8000/api/v1/ping<span class="w"> </span><span class="p">|</span><span class="w"> </span>jq
 </span></code></pre></div>
 <p>Check with web browser:</p>
 <ul>
@@ -1653,15 +1613,15 @@
 </ul>
 <h2 id="4-stop-the-server">4. 🛑 Stop the server</h2>
 <p>Docker runtime:</p>
-<div class="language-sh highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1"># Stop docker compose:</span>
-</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>./compose.sh<span class="w"> </span>stop
-</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="c1"># Or:</span>
-</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>docker<span class="w"> </span>compose<span class="w"> </span>down<span class="w"> </span>--remove-orphans
+<div class="language-sh highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># Stop docker compose:</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>./compose.sh<span class="w"> </span>stop
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="c1"># Or:</span>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>docker<span class="w"> </span>compose<span class="w"> </span>down<span class="w"> </span>--remove-orphans
 </span></code></pre></div>
 <p>Standalone runtime (Only for <strong>PM2</strong>):</p>
-<div class="language-sh highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>pm2<span class="w"> </span>stop<span class="w"> </span>./pm2-process.json<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="se">\</span>
-</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="w">    </span>pm2<span class="w"> </span>flush<span class="w"> </span>fot<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="se">\</span>
-</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="w">    </span>pm2<span class="w"> </span>delete<span class="w"> </span>./pm2-process.json
+<div class="language-sh highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>pm2<span class="w"> </span>stop<span class="w"> </span>./pm2-process.json<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">    </span>pm2<span class="w"> </span>flush<span class="w"> </span>fot<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="w">    </span>pm2<span class="w"> </span>delete<span class="w"> </span>./pm2-process.json
 </span></code></pre></div>
 <p>👍</p>
 
