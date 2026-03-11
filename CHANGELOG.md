@@ -1,5 +1,13 @@
 # Changelog
 
+## v4.0.2-260311 (2026-03-11)
+
+<!-- Release notes generated using configuration in .github/release.yml at main -->
+
+
+
+**Full Changelog**: https://github.com/bybatkhuu/rest-fastapi-orm-template/compare/v4.0.1-260308...v4.0.2-260311
+
 ## v4.0.1-260308 (2026-03-08)
 
 <!-- Release notes generated using configuration in .github/release.yml at main -->
