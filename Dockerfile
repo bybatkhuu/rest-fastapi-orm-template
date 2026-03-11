@@ -2,7 +2,7 @@
 # check=skip=SecretsUsedInArgOrEnv
 
 ARG PYTHON_VERSION=3.10
-ARG BASE_IMAGE=python:${PYTHON_VERSION}-slim-bookworm
+ARG BASE_IMAGE=python:${PYTHON_VERSION}-slim-trixie
 
 ARG DEBIAN_FRONTEND=noninteractive
 ARG FOT_API_SLUG="rest-fastapi-orm-template"
