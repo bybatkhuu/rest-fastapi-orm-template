@@ -117,10 +117,7 @@ repos:
         name: "📝 markdownlint - Lint markdown files"
         args: ["--fix"]
         exclude: |
-          (?x)^(
-            docs/release-notes.md|
-            CHANGELOG.md
-          )
+          (?x)^(docs/release-notes.md|CHANGELOG.md)$
 
   # --- Python ---
   - repo: https://github.com/psf/black
