@@ -7,6 +7,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from potato_util.constants import ALPHANUM_HYPHEN_REGEX
 from potato_util.http.fastapi import get_relative_url
 
+from api.core.constants import ErrorCodeEnum
+from api.core.exceptions import BaseHTTPException
 from api.config import config
 from api.core.dependencies import db as db_deps
 from api.core.responses import BaseResponse
@@ -106,12 +108,14 @@ async def get_tasks(
         logger.success(
             f"[{_request_id}] - Successfully retrieved task list count: {len(_orm_tasks)}/{_all_count}."
         )
-    except Exception as err:
-        if isinstance(err, HTTPException):
-            raise
-
-        logger.error(f"[{_request_id}] - Failed to get task list!")
+    except HTTPException:
         raise
+    except Exception:
+        logger.exception(f"[{_request_id}] - Failed to get task list!")
+        raise BaseHTTPException(
+            error_enum=ErrorCodeEnum.INTERNAL_SERVER_ERROR,
+            message="Failed to get task list!",
+        )
 
     _response = BaseResponse(
         request=request,
@@ -162,10 +166,13 @@ async def create_task(
         if isinstance(err, HTTPException):
             raise
 
-        logger.error(
+        logger.exception(
             f"[{_request_id}] - Failed to create task with '{task_in.name}' name!"
         )
-        raise
+        raise BaseHTTPException(
+            error_enum=ErrorCodeEnum.INTERNAL_SERVER_ERROR,
+            message=f"Failed to create task with '{task_in.name}' name!",
+        )
 
     _response = BaseResponse(
         request=request,
@@ -207,12 +214,14 @@ async def get_task(
         logger.success(
             f"[{_request_id}] - Successfully retrieved task with '{task_id}' ID."
         )
-    except Exception as err:
-        if isinstance(err, HTTPException):
-            raise
-
-        logger.error(f"[{_request_id}] - Failed to get task with '{task_id}' ID!")
+    except HTTPException:
         raise
+    except Exception:
+        logger.exception(f"[{_request_id}] - Failed to get task with '{task_id}' ID!")
+        raise BaseHTTPException(
+            error_enum=ErrorCodeEnum.INTERNAL_SERVER_ERROR,
+            message=f"Failed to get task with '{task_id}' ID!",
+        )
 
     _response = BaseResponse(
         request=request,
@@ -267,8 +276,13 @@ async def update_task(
         if isinstance(err, HTTPException):
             raise
 
-        logger.error(f"[{_request_id}] - Failed to update task with '{task_id}' ID!")
-        raise
+        logger.exception(
+            f"[{_request_id}] - Failed to update task with '{task_id}' ID!"
+        )
+        raise BaseHTTPException(
+            error_enum=ErrorCodeEnum.INTERNAL_SERVER_ERROR,
+            message=f"Failed to update task with '{task_id}' ID!",
+        )
 
     _response = BaseResponse(
         request=request,
@@ -316,8 +330,13 @@ async def delete_task(
         if isinstance(err, HTTPException):
             raise
 
-        logger.error(f"[{_request_id}] - Failed to delete task with '{task_id}' ID!")
-        raise
+        logger.exception(
+            f"[{_request_id}] - Failed to delete task with '{task_id}' ID!"
+        )
+        raise BaseHTTPException(
+            error_enum=ErrorCodeEnum.INTERNAL_SERVER_ERROR,
+            message=f"Failed to delete task with '{task_id}' ID!",
+        )
 
     return
 
