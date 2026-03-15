@@ -7,7 +7,7 @@ hide:
 
 # Introduction
 
-This is a template repository for FastAPI with ORM (SQLAlchemy) projects.
+{{cookiecutter.project_description}}
 
 ## ✨ Features
 
