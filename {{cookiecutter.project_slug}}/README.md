@@ -21,13 +21,6 @@
 - Database migrations (Alembic)
 - PostgreSQL
 - Configuration
-- Tests
-- Build
-- Scripts
-- Examples
-- Documentation
-- CI/CD
-- Docker and docker compose
 
 ---
 
