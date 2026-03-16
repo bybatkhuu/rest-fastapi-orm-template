@@ -16,7 +16,7 @@ class DbConfig(BaseConfig):
     host: str = Field(default="localhost", min_length=2, max_length=128)
     port: int = Field(default=5432, ge=100, le=65535)
     username: str = Field(
-        default=f"{{cookiecutter.project_abbr}}-admin", min_length=2, max_length=32
+        default="{{cookiecutter.project_abbr}}-admin", min_length=2, max_length=32
     )
     password: SecretStr = Field(
         default_factory=lambda: SecretStr(f"{ENV_PREFIX}DB_PASSWORD123"),
@@ -24,7 +24,7 @@ class DbConfig(BaseConfig):
         max_length=64,
     )
     database: str = Field(
-        default=f"{{cookiecutter.project_abbr}}-db", min_length=2, max_length=128
+        default="{{cookiecutter.project_abbr}}-db", min_length=2, max_length=128
     )
     dsn_url: SecretStr | None = Field(default=None)
 
@@ -36,7 +36,7 @@ class DbConfig(BaseConfig):
     read_dsn_url: SecretStr | None = Field(default=None)
 
     connect_args: dict[str, Any] | None = Field(default={"sslmode": "prefer"})
-    prefix: str = Field(default=f"{{cookiecutter.project_abbr}}_", max_length=16)
+    prefix: str = Field(default="{{cookiecutter.project_abbr}}_", max_length=16)
     max_try_connect: int = Field(default=3, ge=1, le=100)
     retry_after: int = Field(default=4, ge=1, le=600)
     echo_sql: bool | constr(strip_whitespace=True, pattern=r"^(debug)$") = Field(  # type: ignore # noqa: F722
