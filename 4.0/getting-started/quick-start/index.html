@@ -1557,15 +1557,13 @@
 <h4 id="standalone-runtime">Standalone runtime</h4>
 <p>[<strong>IMPORTANT</strong>] Before running, make sure <strong>database</strong> is up and running.</p>
 <p>Run <code>alembic migration</code> to create or update <code>database schema</code> to the latest version:</p>
-<div class="language-sh highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># 1. Create a symbolic link to &#39;.env&#39; file in &#39;./src/.env&#39; file:</span>
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>ln<span class="w"> </span>-s<span class="w"> </span>-v<span class="w"> </span>../.env<span class="w"> </span>./src/.env
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="c1"># 2. Run alembic migration:</span>
-</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>./scripts/migrate.sh<span class="w"> </span>up
-</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="c1"># Or:</span>
-</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="nb">cd</span><span class="w"> </span>./src
-</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>alembic<span class="w"> </span>-x<span class="w"> </span><span class="nv">data</span><span class="o">=</span><span class="nb">true</span><span class="w"> </span>upgrade<span class="w"> </span>head
-</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="nb">cd</span><span class="w"> </span>..
+<div class="language-sh highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>./scripts/migrate.sh<span class="w"> </span>up
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="c1"># Or directly with alembic command:</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>ln<span class="w"> </span>-s<span class="w"> </span>-v<span class="w"> </span>../.env<span class="w"> </span>./src/.env
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="nb">cd</span><span class="w"> </span>./src
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>alembic<span class="w"> </span>-x<span class="w"> </span><span class="nv">data</span><span class="o">=</span><span class="nb">true</span><span class="w"> </span>upgrade<span class="w"> </span>head
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="nb">cd</span><span class="w"> </span>..
 </span></code></pre></div>
 <p><strong>OPTION B.</strong> Run with <strong>PM2</strong>:</p>
 <p>[<strong>IMPORTANT</strong>] Before running, need to install <a href="https://pm2.keymetrics.io/docs/usage/quick-start"><strong>PM2</strong></a>:</p>
