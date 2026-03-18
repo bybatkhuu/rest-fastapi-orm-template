@@ -6,6 +6,14 @@ hide:
 
 # 📌 Release Notes
 
+## v4.0.4-260318 (2026-03-18)
+
+<!-- Release notes generated using configuration in .github/release.yml at main -->
+
+
+
+**Full Changelog**: https://github.com/bybatkhuu/rest-fastapi-orm-template/compare/v4.0.3-260313...v4.0.4-260318
+
 ## v4.0.3-260313 (2026-03-13)
 
 <!-- Release notes generated using configuration in .github/release.yml at main -->
