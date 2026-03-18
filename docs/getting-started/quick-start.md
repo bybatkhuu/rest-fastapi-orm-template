@@ -53,12 +53,10 @@ docker compose up -d --remove-orphans --force-recreate && \
 Run `alembic migration` to create or update `database schema` to the latest version:
 
 ```sh
-# 1. Create a symbolic link to '.env' file in './src/.env' file:
-ln -s -v ../.env ./src/.env
-
-# 2. Run alembic migration:
 ./scripts/migrate.sh up
-# Or:
+
+# Or directly with alembic command:
+ln -s -v ../.env ./src/.env
 cd ./src
 alembic -x data=true upgrade head
 cd ..
