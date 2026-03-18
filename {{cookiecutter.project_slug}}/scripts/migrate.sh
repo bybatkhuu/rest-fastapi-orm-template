@@ -104,15 +104,15 @@ while [ $# -gt 0 ]; do
 	case "${1}" in
 		create | new | revision | rev)
 			shift
-			_create_revision "${@:-}"
+			_create_revision "$@"
 			exit 0;;
 		upgrade | up)
 			shift
-			_upgrade "${@:-}"
+			_upgrade "$@"
 			exit 0;;
 		downgrade | down)
 			shift
-			_downgrade "${@:-}"
+			_downgrade "$@"
 			exit 0;;
 		history | hist)
 			shift
