@@ -10,7 +10,14 @@ from pydantic import Field, field_validator, model_validator, ConfigDict
 from potato_util.constants import ALPHANUM_EXTEND_REGEX
 
 from api.config import config
-from api.core.schemas import IdPM, TimestampPM, BasePM, BaseResPM, LinksResPM
+from api.core.schemas import (
+    IdPM,
+    TimestampPM,
+    BasePM,
+    BaseResPM,
+    LinksResPM,
+    PageLinksResPM,
+)
 
 _tasks_base_url = f"{config.api.prefix}/tasks"
 
@@ -86,8 +93,8 @@ class ResTaskPM(BaseResPM):
                 "id": "tas1699928748406212_46D46E7E55FA4A6E8478BD6B04195793",
                 "name": "Task 1",
                 "point": 70,
-                "updated_at": "2021-01-01T00:00:00+00:00",
-                "created_at": "2021-01-01T00:00:00+00:00",
+                "updated_at": "2026-01-01T00:00:00+00:00",
+                "created_at": "2026-01-01T00:00:00+00:00",
             }
         ],
     )
@@ -104,8 +111,8 @@ class ResTasksPM(BaseResPM):
                     "id": "tas1699928748406212_46D46E7E55FA4A6E8478BD6B04195793",
                     "name": "Task 1",
                     "point": 70,
-                    "updated_at": "2021-01-01T00:00:00+00:00",
-                    "created_at": "2021-01-01T00:00:00+00:00",
+                    "updated_at": "2026-01-01T00:00:00+00:00",
+                    "created_at": "2026-01-01T00:00:00+00:00",
                     "links": {
                         "self": f"{_tasks_base_url}/tas1699928748406212_46D46E7E55FA4A6E8478BD6B04195793"
                     },
@@ -114,13 +121,27 @@ class ResTasksPM(BaseResPM):
                     "id": "tas1699854600504660_337FC34BE4304E14A193F6A2793AD9D1",
                     "name": "Task 2",
                     "point": 30,
-                    "updated_at": "2021-01-01T00:00:00+00:00",
-                    "created_at": "2021-01-01T00:00:00+00:00",
+                    "updated_at": "2026-01-01T00:00:00+00:00",
+                    "created_at": "2026-01-01T00:00:00+00:00",
                     "links": {
                         "self": f"{_tasks_base_url}/tas1699854600504660_337FC34BE4304E14A193F6A2793AD9D1"
                     },
                 },
             ]
+        ],
+    )
+    links: PageLinksResPM = Field(  # pyright: ignore
+        default_factory=PageLinksResPM,
+        title="Pagination links",
+        description="Pagination links for the list of tasks.",
+        examples=[
+            {
+                "first": f"{_tasks_base_url}?skip=0&limit=10&is_desc=True",
+                "prev": f"{_tasks_base_url}?skip=30&limit=10&is_desc=True",
+                "self": f"{_tasks_base_url}?skip=40&limit=10&is_desc=True",
+                "next": f"{_tasks_base_url}?skip=50&limit=10&is_desc=True",
+                "last": f"{_tasks_base_url}?skip=90&limit=10&is_desc=True",
+            }
         ],
     )
 

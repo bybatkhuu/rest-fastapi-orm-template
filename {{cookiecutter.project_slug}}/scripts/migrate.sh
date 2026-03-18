@@ -8,8 +8,10 @@ _PROJECT_DIR="$(cd "${_SCRIPT_DIR}/.." >/dev/null 2>&1 && pwd)"
 cd "${_PROJECT_DIR}" || exit 2
 
 
+set -a
 # shellcheck disable=SC1091
 [ -f .env ] && . .env
+set +a
 
 
 if ! command -v alembic >/dev/null 2>&1; then

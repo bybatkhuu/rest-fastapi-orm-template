@@ -16,7 +16,7 @@ class DbConfig(BaseConfig):
     host: str = Field(default="localhost", min_length=2, max_length=128)
     port: int = Field(default=5432, ge=100, le=65535)
     username: str = Field(
-        default="{{cookiecutter.project_abbr}}-admin", min_length=2, max_length=32
+        default="{{cookiecutter.project_abbr}}_admin", min_length=2, max_length=32
     )
     password: SecretStr = Field(
         default_factory=lambda: SecretStr(f"{ENV_PREFIX}DB_PASSWORD123"),
@@ -24,7 +24,7 @@ class DbConfig(BaseConfig):
         max_length=64,
     )
     database: str = Field(
-        default="{{cookiecutter.project_abbr}}-db", min_length=2, max_length=128
+        default="{{cookiecutter.project_abbr}}_db", min_length=2, max_length=128
     )
     dsn_url: SecretStr | None = Field(default=None)
 
