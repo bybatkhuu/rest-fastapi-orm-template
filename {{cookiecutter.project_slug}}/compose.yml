@@ -1,7 +1,7 @@
 services:
   db:
     image: postgres:18.3-trixie
-    restart: unless-stopped
+    restart: always
     environment:
       TERM: ${TERM:-xterm}
       PG_COLOR: ${PG_COLOR:-auto}
@@ -20,7 +20,7 @@ services:
       context: .
     depends_on:
       - db
-    restart: unless-stopped
+    restart: always
     environment:
       TERM: ${TERM:-xterm}
       TZ: ${TZ:-{{cookiecutter.timezone}}}
