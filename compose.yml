@@ -1,7 +1,7 @@
 services:
   db:
     image: postgres:18.3-trixie
-    restart: unless-stopped
+    restart: always
     environment:
       TERM: ${TERM:-xterm}
       PG_COLOR: ${PG_COLOR:-auto}
@@ -13,13 +13,14 @@ services:
       - "./volumes/storage/postgresql/data:/var/lib/postgresql"
     command: ["-p", "${FOT_DB_PORT:-5432}"]
     tty: true
+
   api:
     image: bybatkhuu/rest-fastapi-orm-template:4.0.4-260318
     build:
       context: .
     depends_on:
       - db
-    restart: unless-stopped
+    restart: always
     environment:
       TERM: ${TERM:-xterm}
       TZ: ${TZ:-UTC}
