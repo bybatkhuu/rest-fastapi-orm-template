@@ -7,4 +7,4 @@ psycopg[c]==3.3.3
 alembic==1.18.4
 potato-util[crypto,async]==0.6.0
 beans-logging-fastapi==6.0.4
-fastapi[all]==0.136.0
+fastapi[all]==0.136.1
