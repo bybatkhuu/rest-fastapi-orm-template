@@ -5,6 +5,6 @@ SQLAlchemy-Utils==0.42.1
 psycopg[c]==3.3.3
 # psycopg[binary]==3.3.3
 alembic==1.18.4
-potato-util[crypto,async]==0.6.0
+potato-util[crypto,async]==0.7.2
 beans-logging-fastapi==6.0.4
 fastapi[all]==0.136.0
