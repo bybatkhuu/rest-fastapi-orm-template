@@ -96,7 +96,6 @@ plugins:
   - tags
   - search
   - awesome-nav
-  - render_swagger
   # - mkdocstrings
 extra:
   version:
