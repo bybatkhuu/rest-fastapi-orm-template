@@ -24,7 +24,7 @@ services:
   #   depends_on:
   #     db:
   #       condition: service_healthy
-  #   restart: unless-stopped
+  #   restart: always
   #   environment:
   #     TERM: ${TERM:-xterm}
   #   volumes:

@@ -10,6 +10,7 @@ services:
       POSTGRES_PASSWORD: "${FOT_DB_PASSWORD:-FOT_DB_PASSWORD123}"
       POSTGRES_DB: ${FOT_DB_DATABASE:-fot_db}
     volumes:
+      # - "./volumes/configs/postgresql/conf.d:/etc/postgresql"
       - "./volumes/storage/postgresql/data:/var/lib/postgresql"
     command: ["-p", "${FOT_DB_PORT:-5432}"]
     tty: true
