@@ -19,7 +19,10 @@ if ! command -v alembic >/dev/null 2>&1; then
 	exit 1
 fi
 
-cd ./src || exit 2
+if [ -d "./src" ]; then
+	echo "[INFO]: Found 'src' directory, changing working directory to './src'..."
+	cd ./src || exit 2
+fi
 ## --- Base --- ##
 
 
