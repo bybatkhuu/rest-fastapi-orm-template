@@ -1,10 +1,14 @@
-from pydantic import Field, constr, SecretStr
+from typing import Annotated
+
+from pydantic import Field, SecretStr
+from pydantic.types import StringConstraints
 from pydantic_settings import SettingsConfigDict
 
 from potato_util.constants import (
     HTTP_METHOD_REGEX,
     ASYMMETRIC_ALGORITHM_REGEX,
     JWT_ALGORITHM_REGEX,
+    HashAlgoEnum,
 )
 
 from api.core.constants import ENV_PREFIX, ENV_PREFIX_API
@@ -18,19 +22,21 @@ class CorsConfig(FrozenBaseConfig):
     allow_origins: list[str] = Field(default=["*"])
     allow_origin_regex: str | None = Field(default=None)
     allow_headers: list[str] = Field(default=["*"])
-    allow_methods: list[constr(strip_whitespace=True, pattern=HTTP_METHOD_REGEX)] = (  # type: ignore
-        Field(
-            default=[
-                "GET",
-                "POST",
-                "PUT",
-                "PATCH",
-                "DELETE",
-                "HEAD",
-                "OPTIONS",
-                "CONNECT",
-            ]
-        )
+    allow_methods: list[
+        Annotated[
+            str, StringConstraints(strip_whitespace=True, pattern=HTTP_METHOD_REGEX)
+        ]
+    ] = Field(
+        default=[
+            "GET",
+            "POST",
+            "PUT",
+            "PATCH",
+            "DELETE",
+            "HEAD",
+            "OPTIONS",
+            "CONNECT",
+        ]
     )
     allow_credentials: bool = Field(default=False)
     allow_private_network: bool = Field(default=False)
@@ -66,7 +72,7 @@ class SSLConfig(FrozenBaseConfig):
 
 
 class AsymmetricConfig(FrozenBaseConfig):
-    generate: bool = Field(default=False)
+    generate: bool = Field(default=True)
     algorithm: str = Field(default="RS256", pattern=ASYMMETRIC_ALGORITHM_REGEX)
     key_size: int = Field(default=2048, ge=2048, le=8192)
     private_key_fname: str = Field(
@@ -79,20 +85,9 @@ class AsymmetricConfig(FrozenBaseConfig):
     model_config = SettingsConfigDict(env_prefix=f"{_ENV_PREFIX_SECURITY}ASYMMETRIC_")
 
 
-class JWTConfig(FrozenBaseConfig):
-    secret: SecretStr = Field(
-        default_factory=lambda: SecretStr(f"{ENV_PREFIX}JWT_SECRET123"),
-        min_length=8,
-        max_length=64,
-    )
-    algorithm: str = Field(default="HS256", pattern=JWT_ALGORITHM_REGEX)
-
-    model_config = SettingsConfigDict(env_prefix=f"{_ENV_PREFIX_SECURITY}JWT_")
-
-
 class PasswordConfig(FrozenBaseConfig):
     pepper: SecretStr = Field(
-        default_factory=lambda: SecretStr(f"{ENV_PREFIX}PASSWORD_PEPPER123"),
+        default_factory=lambda: SecretStr(f"{ENV_PREFIX_API}PASSWORD_PEPPER123"),
         min_length=8,
         max_length=32,
     )
@@ -102,13 +97,54 @@ class PasswordConfig(FrozenBaseConfig):
     model_config = SettingsConfigDict(env_prefix=f"{_ENV_PREFIX_SECURITY}PASSWORD_")
 
 
+class APIKeyConfig(FrozenBaseConfig):
+    prefix: str = Field(default="sk-{timestamp}", min_length=2, max_length=16)
+    separator: str = Field(default=".", min_length=1, max_length=2)
+    length: int = Field(default=50, ge=32, le=256)
+    hash_algorithm: HashAlgoEnum = Field(default=HashAlgoEnum.sha256)
+
+    model_config = SettingsConfigDict(env_prefix=f"{_ENV_PREFIX_SECURITY}API_KEY_")
+
+
+class TokenConfig(FrozenBaseConfig):
+    length: int = Field(default=64, ge=32, le=256)
+    hash_algorithm: HashAlgoEnum = Field(default=HashAlgoEnum.sha256)
+    reset_duration: int = Field(default=900, ge=300, le=86400)  # 15 minutes
+    refresh_duration: int = Field(default=604800, ge=86400, le=15552000)  # 7 days
+    remember_duration: int = Field(default=2592000, ge=86400, le=15552000)  # 30 days
+
+    model_config = SettingsConfigDict(env_prefix=f"{_ENV_PREFIX_SECURITY}TOKEN_")
+
+
+class JWTConfig(FrozenBaseConfig):
+    secret: SecretStr = Field(
+        default_factory=lambda: SecretStr(f"{ENV_PREFIX}JWT_SECRET123"),
+        min_length=8,
+        max_length=64,
+    )
+    algorithm: str = Field(default="HS256", pattern=JWT_ALGORITHM_REGEX)
+    access_duration: int = Field(default=600, ge=60, le=86400)  # 10 minutes
+    verify_duration: int = Field(default=1800, ge=300, le=86400)  # 30 minutes
+
+    model_config = SettingsConfigDict(env_prefix=f"{_ENV_PREFIX_SECURITY}JWT_")
+
+
+class CookieConfig(FrozenBaseConfig):
+    enabled: bool = Field(default=True)
+
+    model_config = SettingsConfigDict(env_prefix=f"{_ENV_PREFIX_SECURITY}COOKIE_")
+
+
 class SecurityConfig(FrozenBaseConfig):
     allowed_hosts: list[str] = Field(default=["*"])
     cors: CorsConfig = Field(default_factory=CorsConfig)
     ssl: SSLConfig = Field(default_factory=SSLConfig)
     asymmetric: AsymmetricConfig = Field(default_factory=AsymmetricConfig)
-    jwt: JWTConfig = Field(default_factory=JWTConfig)
     password: PasswordConfig = Field(default_factory=PasswordConfig)
+    api_key: APIKeyConfig = Field(default_factory=APIKeyConfig)
+    token: TokenConfig = Field(default_factory=TokenConfig)
+    jwt: JWTConfig = Field(default_factory=JWTConfig)
+    cookie: CookieConfig = Field(default_factory=CookieConfig)
 
     model_config = SettingsConfigDict(env_prefix=_ENV_PREFIX_SECURITY)
 
@@ -119,6 +155,9 @@ __all__ = [
     "X509AttrsConfig",
     "SSLConfig",
     "AsymmetricConfig",
-    "JWTConfig",
     "PasswordConfig",
+    "APIKeyConfig",
+    "TokenConfig",
+    "JWTConfig",
+    "CookieConfig",
 ]

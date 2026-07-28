@@ -3,7 +3,7 @@ from collections.abc import AsyncGenerator
 # from sqlalchemy.orm import Session
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api.databases.rdb import (
+from api.database import (
     AsyncWriteSession,
     AsyncReadSession,
     # WriteSession,

@@ -13,12 +13,24 @@ from beans_logging_fastapi import add_logger
 # Internal modules
 from api.__version__ import __version__
 from api.config import config
-from api.lifespan import lifespan, pre_init
+from api.helpers.ssl import check_ssl_certs
+from api.lifespan import lifespan
 from api.middleware import add_middlewares
 from api.router import add_routers
 from api.mount import add_mounts
 from api.exception import add_exception_handlers
 from api.core.responses import BaseResponse
+
+
+def _pre_init() -> None:
+    """Pre-initialization tasks before creating FastAPI application."""
+
+    if config.api.security.ssl.generate or config.api.security.ssl.enabled:
+        check_ssl_certs()
+
+    # Add more pre-initialization tasks here...
+
+    return
 
 
 def create_app() -> FastAPI:
@@ -28,14 +40,14 @@ def create_app() -> FastAPI:
         FastAPI: FastAPI application instance.
     """
 
-    pre_init()
+    _pre_init()
 
     app = FastAPI(
         title=config.api.title,
         version=__version__,
         lifespan=lifespan,
         default_response_class=BaseResponse,
-        **config.api.docs.model_dump(exclude={"enabled"}),
+        **config.api.docs.model_dump(exclude={"enabled", "scalar_url"}),
     )
 
     add_logger(

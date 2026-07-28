@@ -8,7 +8,7 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 
 from potato_util.http import get_http_status
-from potato_util.http.fastapi import get_relative_url
+from potato_util.http.fastapi import get_relative_url, get_base_url
 
 from api.__version__ import __version__
 from api.config import config
@@ -78,9 +78,9 @@ class BaseResponse(JSONResponse):
         if request:
             _request_id: str = request.state.request_id
 
-            links["self"] = f"{get_relative_url(request)}"
+            links["self"] = get_relative_url(request)
             meta["method"] = request.method
-            meta["base_url"] = str(request.base_url)[:-1]
+            meta["base_url"] = get_base_url(request)
 
             if "X-Request-Id" not in headers:
                 headers["X-Request-Id"] = _request_id

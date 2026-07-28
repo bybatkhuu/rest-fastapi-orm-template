@@ -1,4 +1,3 @@
-import os
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
@@ -6,62 +5,19 @@ from fastapi import FastAPI
 
 from potato_util.io import async_create_dir
 from potato_util.crypto import asymmetric as asymmetric_utils
-from potato_util.crypto import ssl as ssl_utils
 
 from api.__version__ import __version__
 from api.config import config
-from api.databases.rdb import (
+from api.database import (
     async_check_db,
-    # async_create_structure,
     async_close_db,
     async_write_engine,
     async_read_engine,
     engines,
     sessions,
+    register_orms,
 )
 from api.logger import logger
-
-
-def _check_ssl_certs() -> None:
-    """Check if SSL certificates exist when SSL is enabled or set to be generated.
-
-    Raises:
-        SystemExit: If SSL certificates are missing or cannot be created.
-    """
-
-    if config.api.security.ssl.generate:
-        ssl_utils.create_ssl_certs(
-            ssl_dir=config.api.paths.ssl_dir,
-            key_fname=config.api.security.ssl.key_fname,
-            cert_fname=config.api.security.ssl.cert_fname,
-            key_size=config.api.security.ssl.key_size,
-            x509_attrs=config.api.security.ssl.x509_attrs.model_dump(),
-        )
-
-    if config.api.security.ssl.enabled:
-        _ssl_keyfile_path = os.path.join(
-            config.api.paths.ssl_dir, config.api.security.ssl.key_fname
-        )
-        _ssl_certfile_path = os.path.join(
-            config.api.paths.ssl_dir, config.api.security.ssl.cert_fname
-        )
-
-        if (not os.path.isfile(_ssl_keyfile_path)) or (
-            not os.path.isfile(_ssl_certfile_path)
-        ):
-            logger.error("SSL key or certificate file not found!")
-            raise SystemExit(1)
-
-    return
-
-
-def pre_init() -> None:
-    """Pre-initialization tasks before creating FastAPI application."""
-
-    _check_ssl_certs()
-    # Add more pre-initialization tasks here...
-
-    return
 
 
 async def _async_create_dirs() -> None:
@@ -74,8 +30,30 @@ async def _async_create_dirs() -> None:
     try:
         await async_create_dir(config.api.paths.data_dir)
         # Add directories that need to be created here...
+
     except Exception:
         logger.exception("Failed to create directories:")
+        raise SystemExit(1)
+
+    return
+
+
+async def _async_ensure_asymmetric_keys() -> None:
+    """Ensure asymmetric keys exist when asymmetric keys are set to be generated.
+
+    Raises:
+        SystemExit: If failed to create asymmetric keys.
+    """
+
+    try:
+        await asymmetric_utils.async_create_keys(
+            asymmetric_keys_dir=config.api.paths.asymmetric_keys_dir,
+            key_size=config.api.security.asymmetric.key_size,
+            private_key_fname=config.api.security.asymmetric.private_key_fname,
+            public_key_fname=config.api.security.asymmetric.public_key_fname,
+        )
+    except Exception:
+        logger.exception("Failed to create asymmetric keys:")
         raise SystemExit(1)
 
     return
@@ -91,18 +69,23 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """
 
     logger.info("Preparing to startup...")
-    # await _async_create_dirs()
+    await _async_create_dirs()
     if config.api.security.asymmetric.generate:
-        await asymmetric_utils.async_create_keys(
-            asymmetric_keys_dir=config.api.paths.asymmetric_keys_dir,
-            key_size=config.api.security.asymmetric.key_size,
-            private_key_fname=config.api.security.asymmetric.private_key_fname,
-            public_key_fname=config.api.security.asymmetric.public_key_fname,
-        )
+        await _async_ensure_asymmetric_keys()
 
-    await async_check_db(async_engine=async_write_engine)
-    await async_check_db(async_engine=async_read_engine, is_write_db=False)
-    # await async_create_structure(async_engine=async_write_engine)
+    await async_check_db(
+        async_engine=async_write_engine,
+        max_try_connect=config.db.max_try_connect,
+        retry_after=config.db.retry_after,
+    )
+    await async_check_db(
+        async_engine=async_read_engine,
+        is_write_db=False,
+        max_try_connect=config.db.max_try_connect,
+        retry_after=config.db.retry_after,
+    )
+    register_orms()
+
     # Add startup code here...
     logger.success("Finished preparation to startup.")
     logger.opt(colors=True).info(f"Version: <c>{__version__}</c>")
@@ -121,6 +104,5 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
 
 __all__ = [
-    "pre_init",
     "lifespan",
 ]

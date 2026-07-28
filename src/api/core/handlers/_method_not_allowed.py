@@ -1,6 +1,6 @@
 from fastapi import HTTPException, Request
 
-from api.core.constants import ErrorCodeEnum
+from api.core.exceptions.http import MethodNotAllowedError
 from api.core.responses import BaseResponse
 
 
@@ -18,11 +18,11 @@ async def method_not_allowed_handler(
         BaseResponse: Response object.
     """
 
-    _error = ErrorCodeEnum.METHOD_NOT_ALLOWED.value.model_dump()
-    _message: str = _error.get("message", "Method Not Allowed")
+    _error_dict = MethodNotAllowedError.error.model_dump(mode="json")
+    _message: str = _error_dict.get("message", "Method Not Allowed")
 
     return BaseResponse(
-        request=request, status_code=405, message=_message, error=_error
+        request=request, status_code=405, message=_message, error=_error_dict
     )
 
 

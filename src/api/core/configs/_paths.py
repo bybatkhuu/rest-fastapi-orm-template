@@ -22,6 +22,10 @@ class PathsConfig(BaseConfig):
     asymmetric_keys_dir: str = Field(
         default="{data_dir}/security/asymmetric_keys", min_length=2, max_length=1024
     )
+    users_dir: str = Field(default="{data_dir}/users", min_length=2, max_length=1024)
+    user_dir: str = Field(
+        default="{users_dir}/{{user_id}}", min_length=2, max_length=1024
+    )
 
     @field_validator("tmp_dir", mode="after")
     @classmethod
@@ -56,6 +60,9 @@ class FrozenPathsConfig(PathsConfig):
 
                     if ("tmp_dir" in data) and ("{tmp_dir}" in _val):
                         data[_key] = _val.format(tmp_dir=data["tmp_dir"])
+
+                    if ("users_dir" in data) and ("{users_dir}" in _val):
+                        data[_key] = _val.format(users_dir=data["users_dir"])
 
         return data
 

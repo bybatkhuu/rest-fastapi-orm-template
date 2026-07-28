@@ -2,7 +2,7 @@ from fastapi import HTTPException, Request
 
 from potato_util.http import get_http_status
 
-from api.core.constants import ErrorCodeEnum
+from api.core.exceptions.http import get_by_status
 from api.core.responses import BaseResponse
 
 
@@ -41,18 +41,23 @@ async def http_exception_handler(
     else:
         _message = str(exc.detail)
 
-        _error_code_enum = ErrorCodeEnum.get_by_status_code(status_code=exc.status_code)
-        if _error_code_enum:
-            _error = _error_code_enum.value.model_dump()
+        try:
+            _error = get_by_status(status_code=exc.status_code).error.model_dump(
+                mode="json"
+            )
+        except ValueError:
+            pass
 
-    _content = None
-    if hasattr(exc, "content"):
-        _content = getattr(exc, "content")
+    _data = None
+    if hasattr(exc, "data"):
+        _data = getattr(exc, "data")
+    elif isinstance(exc.detail, dict):
+        _data = exc.detail.get("data")
 
     _headers = dict(exc.headers) if exc.headers else None
     return BaseResponse(
         request=request,
-        content=_content,
+        content=_data,
         status_code=exc.status_code,
         message=_message,
         error=_error,

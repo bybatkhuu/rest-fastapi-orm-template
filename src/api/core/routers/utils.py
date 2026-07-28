@@ -2,7 +2,7 @@ from fastapi import APIRouter, Request
 
 from api.core.schemas import BaseResPM
 from api.core.responses import BaseResponse
-from api.databases.rdb import async_is_db_connectable, async_read_engine
+from api.database import async_read_engine, async_is_db_connectable
 
 router = APIRouter(tags=["Utils"])
 

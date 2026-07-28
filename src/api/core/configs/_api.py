@@ -14,6 +14,8 @@ from ._uvicorn import UvicornConfig
 from ._security import SecurityConfig
 from ._docs import DocsConfig, FrozenDocsConfig
 from ._paths import PathsConfig, FrozenPathsConfig
+from ._rbac import RBACConfig
+from ._user import UserConfig
 from ._logger import LoggerConfigPM, FrozenLoggerConfigPM
 
 
@@ -28,9 +30,7 @@ class ApiConfig(BaseConfig):
     title: str = Field(default="FastAPI ORM Template", min_length=2, max_length=128)
     slug: str = Field(default=API_SLUG, min_length=2, max_length=128)
     http_scheme: HTTPSchemeEnum = Field(default=HTTPSchemeEnum.http)
-    bind_host: str = Field(
-        default="0.0.0.0", min_length=2, max_length=128  # nosec B104
-    )
+    bind_host: str = Field(default="0.0.0.0", min_length=2, max_length=128)
     port: int = Field(default=8000, ge=80, lt=65536)
     version: str = Field(default="1", min_length=1, max_length=16)
     prefix: str = Field(default="/api/v{api_version}", max_length=128)
@@ -39,6 +39,8 @@ class ApiConfig(BaseConfig):
     security: SecurityConfig = Field(default_factory=SecurityConfig)
     docs: DocsConfig = Field(default_factory=DocsConfig)
     paths: PathsConfig = Field(default_factory=PathsConfig)
+    rbac: RBACConfig = Field(default_factory=RBACConfig)
+    user: UserConfig = Field(default_factory=UserConfig)
     logger: LoggerConfigPM = Field(default_factory=LoggerConfigPM)
 
     @field_validator("prefix", mode="after")
@@ -61,7 +63,7 @@ class ApiConfig(BaseConfig):
 
     @field_validator("docs", mode="after")
     @classmethod
-    def _check_docs(cls, val: DocsConfig, info: ValidationInfo) -> DocsConfig:
+    def _check_docs(cls, val: DocsConfig, info: ValidationInfo) -> FrozenDocsConfig:
         _docs_dict = val.model_dump()
         if ("prefix" in info.data) and val.enabled:
             for _key, _doc in _docs_dict.items():
@@ -133,7 +135,7 @@ class FrozenApiConfig(ApiConfig):
                 data["bind_host"] = "127.0.0.1"
 
                 if sys.argv[0].endswith("fastapi") and sys.argv[1] == "run":
-                    data["bind_host"] = "0.0.0.0"  # nosec B104
+                    data["bind_host"] = "0.0.0.0"
 
         return data
 

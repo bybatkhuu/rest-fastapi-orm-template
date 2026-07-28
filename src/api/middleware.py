@@ -5,7 +5,11 @@ from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 
 from api.config import config
-from api.core.middlewares import ProcessTimeMiddleware, RequestIdMiddleware
+from api.core.middlewares import (
+    DetectBrowserMiddleware,
+    RequestIdMiddleware,
+    ProcessTimeMiddleware,
+)
 
 
 @validate_call(config={"arbitrary_types_allowed": True})
@@ -17,6 +21,7 @@ def add_middlewares(app: FastAPI) -> None:
     """
 
     # Add more middlewares here...
+    app.add_middleware(DetectBrowserMiddleware)
     app.add_middleware(GZipMiddleware, **config.api.gzip.model_dump())
     app.add_middleware(CORSMiddleware, **config.api.security.cors.model_dump())
     app.add_middleware(

@@ -11,7 +11,7 @@ from api.core import utils
 
 class BaseConfig(BaseSettings):
     model_config = SettingsConfigDict(
-        extra="allow",
+        extra="ignore",
         env_file=".env",
         validate_default=True,
         validate_assignment=True,

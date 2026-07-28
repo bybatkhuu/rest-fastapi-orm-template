@@ -1,7 +1,8 @@
-from typing import Any
+from typing import Any, Annotated
 from urllib.parse import quote_plus
 
-from pydantic import Field, constr, SecretStr, model_validator
+from pydantic import Field, SecretStr, model_validator
+from pydantic.types import StringConstraints
 from pydantic_settings import SettingsConfigDict
 
 from api.core.constants import ENV_PREFIX, ENV_PREFIX_DB
@@ -35,12 +36,14 @@ class DbConfig(BaseConfig):
     prefix: str = Field(default="fot_", max_length=16)
     max_try_connect: int = Field(default=3, ge=1, le=100)
     retry_after: int = Field(default=4, ge=1, le=600)
-    echo_sql: bool | constr(strip_whitespace=True, pattern=r"^(debug)$") = Field(  # type: ignore # noqa: F722
-        default=False
-    )
-    echo_pool: bool | constr(strip_whitespace=True, pattern=r"^(debug)$") = Field(  # type: ignore # noqa: F722
-        default=False
-    )
+    echo_sql: (
+        bool
+        | Annotated[str, StringConstraints(strip_whitespace=True, pattern=r"^(debug)$")]
+    ) = Field(default=False)
+    echo_pool: (
+        bool
+        | Annotated[str, StringConstraints(strip_whitespace=True, pattern=r"^(debug)$")]
+    ) = Field(default=False)
     pool_size: int = Field(default=10, ge=0, le=1000)  # 0 means no limit
     max_overflow: int = Field(
         default=10, ge=0, le=1000

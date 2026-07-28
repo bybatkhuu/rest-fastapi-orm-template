@@ -1,12 +1,10 @@
-from typing import Any
-
 from fastapi import Request
 
 from beans_logging_fastapi import log_http_error
 
-from api.core.constants import ErrorCodeEnum
+from api.core.exceptions.http import InternalServerError, DBPkError, DBUqError
+from api.externals.db.models.exceptions import PrimaryKeyError, UniqueKeyError
 from api.config import config
-from api.core.exceptions import PrimaryKeyError, UniqueKeyError
 from api.core.responses import BaseResponse
 
 # from api.logger import logger
@@ -24,27 +22,27 @@ async def server_error_handler(request: Request, exc: Exception) -> BaseResponse
         BaseResponse: Response object.
     """
 
-    _error_enum = ErrorCodeEnum.INTERNAL_SERVER_ERROR
+    _error_pm = InternalServerError.error.model_copy(deep=True)
     if isinstance(exc, PrimaryKeyError):
-        _error_enum = ErrorCodeEnum.DB_PK_ERROR
+        _error_pm = DBPkError.error.model_copy(deep=True)
     if isinstance(exc, UniqueKeyError):
-        _error_enum = ErrorCodeEnum.DB_UQ_ERROR
+        _error_pm = DBUqError.error.model_copy(deep=True)
 
-    # _request_id: str = request.state.request_id
     _exc_str = str(exc)
-    _status_code = _error_enum.value.status_code
-    _error: dict[str, Any] = _error_enum.value.model_dump()
-    _error["detail"] = _exc_str
-    _message: str = _error.get("message", "Internal Server Error")
+    _status_code = _error_pm.status_code
+    _error_dict = _error_pm.model_dump(mode="json")
+    _error_dict["detail"] = _exc_str
+    _message: str = _error_dict.get("message", "Internal Server Error")
 
-    # logger.exception(f"[{_request_id}] {_error_enum.value.code} - {_exc_str}")
+    # logger.exception(f"{_error_pm.code} - {_exc_str}")
     log_http_error(
         request=request,
         status_code=_status_code,
-        msg_format_str=config.api.logger.http.std.err_msg_format_str,
+        exc=exc,
+        sub_format=config.api.logger.http.std.err_sub_format,
     )
     return BaseResponse(
-        request=request, status_code=_status_code, message=_message, error=_error
+        request=request, status_code=_status_code, message=_message, error=_error_dict
     )
 
 

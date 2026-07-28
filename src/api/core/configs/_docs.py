@@ -13,6 +13,7 @@ from ._base import BaseConfig
 class DocsConfig(BaseConfig):
     enabled: bool = Field(default=True)
     openapi_url: str | None = Field(default="{api_prefix}/openapi.json")
+    scalar_url: str | None = Field(default="{api_prefix}/scalar")
     docs_url: str | None = Field(default="{api_prefix}/docs")
     redoc_url: str | None = Field(default="{api_prefix}/redoc")
     swagger_ui_oauth2_redirect_url: str | None = Field(
@@ -37,8 +38,14 @@ class DocsConfig(BaseConfig):
     openapi_tags: list[dict[str, Any]] | None = Field(
         default=[
             {"name": "Utils", "description": "Useful utility endpoints."},
-            {"name": "Tasks", "description": "Endpoints to manage tasks."},
-            {"name": "Default", "description": "Redirection of default endpoints."},
+            {
+                "name": "Auth",
+                "description": "Authentication and authorization endpoints.",
+            },
+            {
+                "name": "User Me",
+                "description": "Endpoints for authenticated user.",
+            },
         ]
     )
     swagger_ui_parameters: dict[str, Any] | None = Field(
@@ -56,6 +63,9 @@ class FrozenDocsConfig(DocsConfig):
             if ("openapi_url" in data) and (data["openapi_url"] == ""):
                 data["openapi_url"] = None
 
+            if ("scalar_url" in data) and (data["scalar_url"] == ""):
+                data["scalar_url"] = None
+
             if ("docs_url" in data) and (data["docs_url"] == ""):
                 data["docs_url"] = None
 
@@ -70,6 +80,7 @@ class FrozenDocsConfig(DocsConfig):
             try:
                 if ("enabled" in data) and validator.is_falsy(data["enabled"]):
                     data["openapi_url"] = None
+                    data["scalar_url"] = None
                     data["docs_url"] = None
                     data["redoc_url"] = None
                     data["swagger_ui_oauth2_redirect_url"] = None

@@ -11,20 +11,42 @@ from pydantic_settings import SettingsConfigDict
 
 from potato_util.constants import EnvEnum
 
-from api.core.constants import ENV_PREFIX, ENV_PREFIX_DB
+from api.core.constants import (
+    ENV_PREFIX,
+    ENV_PREFIX_DB,
+    ENV_PREFIX_MAIL,
+    ENV_PREFIX_API,
+)
 
 from ._base import BaseMainConfig
 from ._uvicorn import UvicornConfig, FrozenUvicornConfig
+from ._mail import MailConfig
 from ._db import DbConfig, FrozenDbConfig
 from ._api import ApiConfig, FrozenApiConfig
+from ._ui import UIConfig
 
 
 # Main config schema:
 class MainConfig(BaseMainConfig):
     env: EnvEnum = Field(default=EnvEnum.LOCAL, alias="env")
     debug: bool = Field(default=False, alias="debug")
+    mail: MailConfig = Field(default_factory=MailConfig)
     db: DbConfig = Field(default_factory=DbConfig)
     api: ApiConfig = Field(default_factory=ApiConfig)
+    ui: UIConfig = Field(default_factory=UIConfig)
+
+    @field_validator("db", mode="after")
+    @classmethod
+    def _check_db(cls, val: DbConfig, info: ValidationInfo) -> FrozenDbConfig:
+        if ("debug" in info.data) and (not info.data["debug"]):
+            os.environ.pop(f"{ENV_PREFIX_DB}ECHO_SQL", None)
+            val.echo_sql = False
+
+            os.environ.pop(f"{ENV_PREFIX_DB}ECHO_POOL", None)
+            val.echo_pool = False
+
+        val = FrozenDbConfig(**val.model_dump())
+        return val
 
     @field_validator("api", mode="after")
     @classmethod
@@ -48,23 +70,13 @@ class MainConfig(BaseMainConfig):
         val = FrozenApiConfig(uvicorn=_uvicorn, **val.model_dump(exclude={"uvicorn"}))
         return val
 
-    @field_validator("db")
-    @classmethod
-    def _check_db(cls, val: DbConfig, info: ValidationInfo) -> FrozenDbConfig:
-        if ("debug" in info.data) and (not info.data["debug"]):
-            os.environ.pop(f"{ENV_PREFIX_DB}ECHO_SQL", None)
-            val.echo_sql = False
-
-            os.environ.pop(f"{ENV_PREFIX_DB}ECHO_POOL", None)
-            val.echo_pool = False
-
-        val = FrozenDbConfig(**val.model_dump())
-        return val
-
     @model_validator(mode="after")
     def _check_required_envs(self) -> Self:
         _required_envs = [
-            # f"{ENV_PREFIX_API}SECURITY_JWT_SECRET",
+            f"{ENV_PREFIX_API}SECURITY_JWT_SECRET",
+            f"{ENV_PREFIX_API}SECURITY_PASSWORD_PEPPER",
+            f"{ENV_PREFIX_API}USER_ADMIN_PASSWORD",
+            f"{ENV_PREFIX_MAIL}PASSWORD",
         ]
 
         if (self.env == EnvEnum.STAGING) or (self.env == EnvEnum.PRODUCTION):

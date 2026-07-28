@@ -1,5 +1,6 @@
-from beans_logging_fastapi import logger
+from beans_logging_fastapi import Logger, logger
 
 __all__ = [
+    "Logger",
     "logger",
 ]
