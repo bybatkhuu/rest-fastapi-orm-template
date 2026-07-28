@@ -76,6 +76,7 @@ class MainConfig(BaseMainConfig):
             f"{ENV_PREFIX_API}SECURITY_JWT_SECRET",
             f"{ENV_PREFIX_API}SECURITY_PASSWORD_PEPPER",
             f"{ENV_PREFIX_API}USER_ADMIN_PASSWORD",
+            f"{ENV_PREFIX_MAIL}USERNAME",
             f"{ENV_PREFIX_MAIL}PASSWORD",
         ]
 
