@@ -1,8 +1,8 @@
 """Base migration
 
-Revision ID: e67f8f186f42
+Revision ID: 051e88220f46
 Revises:
-Create Date: 2026-04-06 02:15:56.583787+00:00
+Create Date: 2026-07-28 07:05:36.696310+00:00
 
 """
 
@@ -14,7 +14,7 @@ from migration import extensions
 from migration import routines
 
 # revision identifiers, used by Alembic.
-revision: str = "e67f8f186f42"
+revision: str = "051e88220f46"
 down_revision: str | None = None
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
