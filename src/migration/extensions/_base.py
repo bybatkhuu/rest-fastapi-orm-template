@@ -26,7 +26,7 @@ def create_all_ext() -> None:
     """Create all extensions."""
 
     create_pg_stat_statements()
-    create_pg_cron()
+    # create_pg_cron()
     # create_btree_gist()
     return
 
@@ -35,7 +35,7 @@ def drop_all_ext() -> None:
     """Drop all extensions."""
 
     op.execute("DROP EXTENSION IF EXISTS pg_stat_statements CASCADE;")
-    op.execute("DROP EXTENSION IF EXISTS pg_cron CASCADE;")
+    # op.execute("DROP EXTENSION IF EXISTS pg_cron CASCADE;")
     # op.execute("DROP EXTENSION IF EXISTS btree_gist CASCADE;")
     return
 
