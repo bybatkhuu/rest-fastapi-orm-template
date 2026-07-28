@@ -284,7 +284,20 @@ FOT_DB_DATABASE=fot_db
 # FOT_DB_READ_DSN_URL="postgresql+psycopg://fot_admin:FOT_DB_PASSWORD123@localhost:5432/fot_db" # !!! CHANGE THIS TO REAL DSN URL !!! # pragma: allowlist secret
 
 
+## --- Mail configs --- ##
+# FOT_MAIL_HOST=smtp.gmail.com
+# FOT_MAIL_PORT=465
+FOT_MAIL_USERNAME=support@example.com
+FOT_MAIL_PASSWORD="FOT_MAIL_PASSWORD123" # !!! CHANGE THIS TO REAL PASSWORD !!! # pragma: allowlist secret
+# FOT_MAIL_STARTTLS=false
+# FOT_MAIL_FROM_ADDR="No Reply" <no-reply@example.com>
+
+
 ## -- API configs -- ##
+FOT_API_SECURITY_JWT_SECRET="FOT_JWT_SECRET123" # !!! CHANGE THIS TO RANDOM SECRET !!! # pragma: allowlist secret
+FOT_API_SECURITY_PASSWORD_PEPPER="FOT_PASSWORD_PEPPER123" # !!! CHANGE THIS TO RANDOM PEPPER !!! # pragma: allowlist secret
+FOT_API_USER_ADMIN_PASSWORD="FOT_USER_ADMIN_PASSWORD123" # !!! CHANGE THIS TO RANDOM PASSWORD !!! # pragma: allowlist secret
+
 FOT_API_PORT=8000
 # FOT_API_CONFIGS_DIR="/etc/rest-fastapi-orm-template"
 # FOT_API_LOGS_DIR="/var/log/rest-fastapi-orm-template"
@@ -296,6 +309,7 @@ FOT_API_PORT=8000
 # FOT_API_DOCS_OPENAPI_URL="{api_prefix}/openapi.json"
 # FOT_API_DOCS_DOCS_URL="{api_prefix}/docs"
 # FOT_API_DOCS_REDOC_URL="{api_prefix}/redoc"
+# FOT_API_DOCS_SCALAR_URL="{api_prefix}/scalar"
 
 
 
