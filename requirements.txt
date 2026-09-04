@@ -5,8 +5,8 @@ aiosmtplib==5.1.2
 Faker==40.37.0
 SQLAlchemy[asyncio]==2.0.52
 SQLAlchemy-Utils==0.42.1
-psycopg[c]==3.3.4
-# psycopg[binary]==3.3.4
+psycopg[c]==3.3.5
+# psycopg[binary]==3.3.5
 alembic==1.19.1
 potato-util[crypto,async]==1.0.1
 beans-logging-fastapi==8.2.2
