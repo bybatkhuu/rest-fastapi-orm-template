@@ -9,5 +9,5 @@ psycopg[c]==3.3.5
 # psycopg[binary]==3.3.5
 alembic==1.20.0
 potato-util[crypto,async]==1.0.1
-beans-logging-fastapi==8.2.2
+beans-logging-fastapi==8.2.3
 fastapi[all]==0.141.1
