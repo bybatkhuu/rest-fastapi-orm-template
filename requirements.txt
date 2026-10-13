@@ -4,7 +4,7 @@ scalar-fastapi==1.9.1
 aiosmtplib==5.1.3
 Faker==40.41.0
 SQLAlchemy[asyncio]==2.0.54
-SQLAlchemy-Utils==0.42.1
+SQLAlchemy-Utils==0.43.0
 psycopg[c]==3.3.6
 # psycopg[binary]==3.3.6
 alembic==1.20.0
