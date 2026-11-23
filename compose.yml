@@ -1,6 +1,6 @@
 services:
   db:
-    image: postgres:18.7-trixie
+    image: postgres:19.0-trixie
     restart: always
     environment:
       TERM: ${TERM:-xterm}
